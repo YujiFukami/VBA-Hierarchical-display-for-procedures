@@ -77,16 +77,16 @@ Function モジュール一覧取得(objVBProject As Object, TmpProcedureList)
     Dim ModuleCount As Integer
     ModuleCount = TmpVBProject.Count
     
-    Dim ModuleList '←出力
+    Dim moduleList '←出力
     
-    ReDim ModuleList(1 To ModuleCount, 1 To 2)
+    ReDim moduleList(1 To ModuleCount, 1 To 2)
     'ModuleList(:,1)'モジュール(オブジェクト形式)
     'ModuleList(:,2)'プロシージャのリスト
     
     Dim TmpModuleName As String, TmpProcedureNameList
     
     For I = 1 To ModuleCount
-        Set ModuleList(I, 1) = TmpVBProject(I)
+        Set moduleList(I, 1) = TmpVBProject(I)
         TmpModuleName = TmpVBProject(I).Name
         
         K = 0
@@ -104,11 +104,11 @@ Function モジュール一覧取得(objVBProject As Object, TmpProcedureList)
             TmpProcedureNameList = Empty
         End If
         
-        ModuleList(I, 2) = TmpProcedureNameList
+        moduleList(I, 2) = TmpProcedureNameList
         
     Next I
     
-    モジュール一覧取得 = ModuleList
+    モジュール一覧取得 = moduleList
     
 End Function
 Function プロシージャ一覧取得(objVBProject As Object)

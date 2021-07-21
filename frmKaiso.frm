@@ -15,6 +15,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 Option Explicit
 'ãNìÆíÜVBProjectÇÃëSèÓïÒ
 Public PbUnLockVBProjectList
@@ -434,7 +435,7 @@ Private Sub ProcedureListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     
 '    On Error GoTo ErrorEscape
     On Error Resume Next
-    Application.Goto Reference:=TmpProcedureName
+    Application.GoTo Reference:=TmpProcedureName
     On Error GoTo 0
 'ErrorEscape:
 
@@ -513,7 +514,7 @@ Private Sub KaisoListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     TmpProcedureName = Replace(TmpProcedureName, "ÑØ", "")
     
     On Error GoTo ErrorEscape
-    Application.Goto Reference:=TmpProcedureName
+    Application.GoTo Reference:=TmpProcedureName
 
 ErrorEscape:
 End Sub
@@ -557,7 +558,7 @@ Private Sub SiyosakiListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     TmpProcedureName = SiyosakiListBox.List(SiyosakiListBox.ListIndex)
     
     On Error GoTo ErrorEscape
-    Application.Goto Reference:=TmpProcedureName
+    Application.GoTo Reference:=TmpProcedureName
 
 ErrorEscape:
 
