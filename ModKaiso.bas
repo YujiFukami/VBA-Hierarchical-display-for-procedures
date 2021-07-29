@@ -1,4 +1,8 @@
 Attribute VB_Name = "ModKaiso"
+Option Explicit
+
+
+
 Function Kaiso()
     '階層フォーム起動
     Kaiso = "階層化"
@@ -68,6 +72,8 @@ End Function
 Function モジュール一覧取得(objVBProject As Object, TmpProcedureList)
     '指定VBProjectのモジュール一覧を取得する。
     '取得するモジュール1つ1つはオブジェクト形式。
+    
+    If IsEmpty(TmpProcedureList) Then Exit Function
     
     Dim I%, J%, K% '数え上げ用(Integer型)
     
@@ -150,17 +156,17 @@ Function プロシージャ一覧取得(objVBProject As Object)
         
         ReDim AllCodeList(1 To Gyosuu)
         For J = 1 To Gyosuu
-            AllCodeList(J) = TmpModule.CodeModule.ProcofLine(J, 0)
+            AllCodeList(J) = TmpModule.CodeModule.ProcOfLine(J, 0)
         Next J
                 
         ProcedureName = ""
         K2 = 0 'モジュール内での数え上げの初期化
         For J = 1 To Gyosuu
-            Dummy2 = TmpModule.CodeModule.ProcofLine(J, 0)
-            If ProcedureName <> TmpModule.CodeModule.ProcofLine(J, 0) Then
+            Dummy2 = TmpModule.CodeModule.ProcOfLine(J, 0)
+            If ProcedureName <> TmpModule.CodeModule.ProcOfLine(J, 0) Then
                 K = K + 1
                 K2 = K2 + 1
-                ProcedureName = TmpModule.CodeModule.ProcofLine(J, 0)
+                ProcedureName = TmpModule.CodeModule.ProcOfLine(J, 0)
                 
                 Output(K, 1) = TmpModule.Name 'モジュール名
                 Output(K, 2) = ProcedureName 'プロシージャ名
@@ -208,6 +214,9 @@ ForEscape:
         
     ProcedureCount = K  '取得したプロシージャの個数
     
+    If ProcedureCount = 0 Then
+        Exit Function
+    End If
    '取得したプロシージャの個数分の配列にする。
     Dim Output2
     ReDim Output2(1 To ProcedureCount, 1 To UBound(Output, 2))
@@ -666,13 +675,16 @@ Function 多重配列を一列にまとめる(TajuHairetu)
     
     For I = 1 To N
         TmpHairetu = TajuHairetu(I)
-        M = UBound(TmpHairetu, 1)
         
-        For J = 1 To M
-            K = K + 1
-            ReDim Preserve Output(1 To K)
-            Output(K) = TmpHairetu(J)
-        Next J
+        If IsEmpty(TmpHairetu) = False Then
+            M = UBound(TmpHairetu, 1)
+            
+            For J = 1 To M
+                K = K + 1
+                ReDim Preserve Output(1 To K)
+                Output(K) = TmpHairetu(J)
+            Next J
+        End If
     Next I
     
     '出力
@@ -734,15 +746,16 @@ Function 全情報をひとまとめにする(VBProjectFileNameList, ProcedureList, Siyosaki
         TmpProcedureInfo = ProcedureList(I)
         TmpSiyosakiProcedureList = SiyosakiProcedureList(I)
     
-            
-        For J = 1 To UBound(TmpProcedureInfo, 1)
-            K = K + 1
-            TmpKakunoHairetu(K, 1) = TmpVBProjectFileName
-            TmpKakunoHairetu(K, 2) = TmpProcedureInfo(J, 1)
-            TmpKakunoHairetu(K, 3) = TmpProcedureInfo(J, 2)
-            TmpKakunoHairetu(K, 4) = TmpProcedureInfo(J, 3)
-            TmpKakunoHairetu(K, 5) = TmpSiyosakiProcedureList(J)
-        Next J
+        If IsEmpty(TmpProcedureInfo) = False Then
+            For J = 1 To UBound(TmpProcedureInfo, 1)
+                K = K + 1
+                TmpKakunoHairetu(K, 1) = TmpVBProjectFileName 'VBProjectの名前
+                TmpKakunoHairetu(K, 2) = TmpProcedureInfo(J, 1) 'モジュール名
+                TmpKakunoHairetu(K, 3) = TmpProcedureInfo(J, 2) 'プロシージャ名
+                TmpKakunoHairetu(K, 4) = TmpProcedureInfo(J, 3) 'コード
+                TmpKakunoHairetu(K, 5) = TmpSiyosakiProcedureList(J) '使用プロシージャ
+            Next J
+        End If
     Next I
     
     '必要部分抜き出し

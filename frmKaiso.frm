@@ -42,16 +42,12 @@ Public PbOutputKaisoList
 
 Public PbTmpKaisoList
 
-'Private Sub CodeListBox_Click()
-'
-'    Dim TmpCodeItigyo
-'    TmpCodeItigyo = CodeListBox.List(CodeListBox.ListIndex)
-'
-'    '選択リスト全体表示リストボックスに選択した一行を表示
-'    TotemoNagaiListBox.Clear
-'    TotemoNagaiListBox.AddItem TmpCodeItigyo
-'
-'End Sub
+Private Sub Cmd検索_Click()
+    Call コード検索実行
+End Sub
+Private Sub Cmd検索_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    Call コード検索実行
+End Sub
 
 Private Sub KaisoHyouji_Change()
     Dim ListNo As Integer
@@ -159,14 +155,6 @@ Sub コード検索実行()
     
     
 End Sub
-Private Sub tgl検索_Click()
-    Call コード検索実行
-    tgl検索.Value = False
-End Sub
-Private Sub tgl検索_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-    Call コード検索実行
-    tgl検索.Value = False
-End Sub
 
 Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     'サイズ調整
@@ -218,23 +206,25 @@ Private Sub UserForm_Initialize()
     For I = 1 To VBProjectCount
         Set TmpVBProject = PbUnLockVBProjectList(I)
         TmpProcedureList = プロシージャ一覧取得(TmpVBProject) '1列目モジュール、2列目プロシージャ名、3列目プロシージャコード
-        TmpModuleList = モジュール一覧取得(TmpVBProject, TmpProcedureList) '1列目モジュール(オブジェクト形式)、2列目モジュール内のプロシージャリスト
-        
-        TmpProcedureKosu = UBound(TmpProcedureList, 1)
-        
-        ReDim TmpProcedureNameList(1 To TmpProcedureKosu)
-        ReDim TmpProcedureCodeList(1 To TmpProcedureKosu)
-           
-        For J = 1 To TmpProcedureKosu
-            TmpProcedureNameList(J) = TmpProcedureList(J, 2)
-            TmpProcedureCodeList(J) = TmpProcedureList(J, 3)
-        Next J
-        
-        'パブリック引数に格納
-        PbModuleList(I) = TmpModuleList
-        PbProcedureList(I) = TmpProcedureList
-        PbProcedureNameList(I) = TmpProcedureNameList
-        PbProcedureCodeList(I) = TmpProcedureCodeList
+        If IsEmpty(TmpProcedureList) = False Then
+            TmpModuleList = モジュール一覧取得(TmpVBProject, TmpProcedureList) '1列目モジュール(オブジェクト形式)、2列目モジュール内のプロシージャリスト
+            
+            TmpProcedureKosu = UBound(TmpProcedureList, 1)
+            
+            ReDim TmpProcedureNameList(1 To TmpProcedureKosu)
+            ReDim TmpProcedureCodeList(1 To TmpProcedureKosu)
+               
+            For J = 1 To TmpProcedureKosu
+                TmpProcedureNameList(J) = TmpProcedureList(J, 2)
+                TmpProcedureCodeList(J) = TmpProcedureList(J, 3)
+            Next J
+            
+            'パブリック引数に格納
+            PbModuleList(I) = TmpModuleList
+            PbProcedureList(I) = TmpProcedureList
+            PbProcedureNameList(I) = TmpProcedureNameList
+            PbProcedureCodeList(I) = TmpProcedureCodeList
+        End If
         
     Next I
         
@@ -324,8 +314,6 @@ Private Sub UserForm_Initialize()
         .AddItem "第4階層まで"
         .AddItem "第5階層まで"
     End With
-
-    tgl検索.Value = False
     
 End Sub
 Private Sub VBProjectListBox_Click()
