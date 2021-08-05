@@ -9,6 +9,7 @@ Function Kaiso()
     Call frmKaiso.Show
     
 End Function
+
 Function VBProjectリスト取得()
     '起動中のVBProjectをリスト化して取得する。
     '取得するVBProject1つ1つはオブジェクト形式。
@@ -32,6 +33,7 @@ Function VBProjectリスト取得()
     VBProjectリスト取得 = VBProjectList
     
 End Function
+
 Function 非ロックのVBProjectリスト取得()
     '非ロックのVBProjectをリスト化して取得する。
     '取得する非ロックのVBProject1つ1つはオブジェクト形式。
@@ -69,6 +71,7 @@ Function 非ロックのVBProjectリスト取得()
     非ロックのVBProjectリスト取得 = UnLockVBProjectList
     
 End Function
+
 Function モジュール一覧取得(objVBProject As Object, TmpProcedureList)
     '指定VBProjectのモジュール一覧を取得する。
     '取得するモジュール1つ1つはオブジェクト形式。
@@ -117,6 +120,7 @@ Function モジュール一覧取得(objVBProject As Object, TmpProcedureList)
     モジュール一覧取得 = moduleList
     
 End Function
+
 Function プロシージャ一覧取得(objVBProject As Object)
     
     Dim I%, J%, K%, M%, N%, K2% '数え上げ用(Integer型)
@@ -230,6 +234,7 @@ ForEscape:
     プロシージャ一覧取得 = Output2
     
 End Function
+
 Function 改行された文字列を改行で分けて配列にする(Mojiretu)
     Dim Hairetu
     Hairetu = Split(Mojiretu, Chr(10))
@@ -244,6 +249,7 @@ Function 改行された文字列を改行で分けて配列にする(Mojiretu)
     改行された文字列を改行で分けて配列にする = Hairetu
 
 End Function
+
 Function コードの先頭空白を除外する(CodeHairetu)
     Dim I%
     Dim KuhakuKosu%
@@ -277,6 +283,7 @@ Function コードの先頭空白を除外する(CodeHairetu)
     コードの先頭空白を除外する = Output
     
 End Function
+
 Function プロシージャ内の使用プロシージャのリスト取得(InputCode, ProcedureNameList, KensakuProcedureNameList, ProcedureOfCode As String)
     '20210428修正
     Dim I%, J%, K% '数え上げ用(Integer型)
@@ -325,6 +332,7 @@ Function プロシージャ内の使用プロシージャのリスト取得(InputCode, ProcedureNameLi
     プロシージャ内の使用プロシージャのリスト取得 = SiyoProcedureList
 
 End Function
+
 Function 検索用コード文字列変換(InputCode)
     '検索用にコード文字列を変換する
     
@@ -364,6 +372,7 @@ Function 検索用コード文字列変換(InputCode)
     検索用コード文字列変換 = Output
 
 End Function
+
 Function コード一行内にプロシージャがあるか検索(CodeItigyo As String, ProcedureName As String) As Boolean
 
 '    Dim KensakuProcedureName
@@ -487,6 +496,7 @@ Function コード一行内にプロシージャがあるか検索(CodeItigyo As String, ProcedureN
     コード一行内にプロシージャがあるか検索 = ProcedureAruNaraTrue
 
 End Function
+
 Function プロシージャの使用先のプロシージャのリスト取得(ProcedureList, SiyoProcedureListList)
     Dim I%, J%, K%, M%, N%, I2% '数え上げ用(Integer型)
     Dim ProcedureKosu As Integer
@@ -531,6 +541,7 @@ Function プロシージャの使用先のプロシージャのリスト取得(ProcedureList, SiyoProce
     プロシージャの使用先のプロシージャのリスト取得 = Output
         
 End Function
+
 Sub 初期化コピー()
     
     Dim ModuleKosu As Integer
@@ -664,6 +675,7 @@ Sub 初期化コピー()
 '    Me.Caption = "アドイン階層構造" & " " & Version
 
 End Sub
+
 Function 多重配列を一列にまとめる(TajuHairetu)
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     N = UBound(TajuHairetu, 1)
@@ -691,6 +703,7 @@ Function 多重配列を一列にまとめる(TajuHairetu)
     多重配列を一列にまとめる = Output
 
 End Function
+
 Function 指定プロシージャのコード取得(ProcedureName As String, AllInfoList)
     Dim I% '数え上げ用(Integer型)
     Dim Output
@@ -705,6 +718,7 @@ Function 指定プロシージャのコード取得(ProcedureName As String, AllInfoList)
     指定プロシージャのコード取得 = Output
     
 End Function
+
 Function 指定プロシージャの使用先取得(ProcedureName, ProcedureNameList, SiyosakiProcedureList)
     Dim I, K, J, M, N
     Dim Output
@@ -720,6 +734,7 @@ Function 指定プロシージャの使用先取得(ProcedureName, ProcedureNameList, Siyosaki
     指定プロシージャの使用先取得 = Output
     
 End Function
+
 Function 全情報をひとまとめにする(VBProjectFileNameList, ProcedureList, SiyosakiProcedureList)
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -773,6 +788,7 @@ Function 全情報をひとまとめにする(VBProjectFileNameList, ProcedureList, Siyosaki
     
 
 End Function
+
 Function プロシージャの階層構造取得(ProcedureName As String, SiyoSakiItiran, ProcedureItiran)
 
     Dim ProcedureBango As Integer
@@ -891,6 +907,7 @@ Function プロシージャの階層構造取得(ProcedureName As String, SiyoSakiItiran, Pro
     
     
 End Function
+
 Function プロシージャの番号取得(ProcedureName As String, ProcedureNameList) As Integer
     Dim I% '数え上げ用(Integer型)
     Dim Output
@@ -904,6 +921,7 @@ Function プロシージャの番号取得(ProcedureName As String, ProcedureNameList) As I
     プロシージャの番号取得 = Output
     
 End Function
+
 Function 文字区切り(Mojiretu, KugiriMoji As String, OutputMojiretuBango As Byte) As String
     '文字列を指定文字で区切ったときの、指定番号の文字列を返す。
     
@@ -918,6 +936,7 @@ Function 文字区切り(Mojiretu, KugiriMoji As String, OutputMojiretuBango As Byte)
     文字区切り = Output
     
 End Function
+
 Function 階層リストの付属関係計算(KaisoList)
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     N = UBound(KaisoList, 1)
@@ -982,6 +1001,7 @@ Function 階層リストの付属関係計算(KaisoList)
     階層リストの付属関係計算 = Output
     
 End Function
+
 Function 階層リストを指定階層までのリスト取得(KaisoList, ByVal SiteiKaisoNum)
     Dim KaisoNumList
     Dim HuzokuKosuList

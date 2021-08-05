@@ -45,6 +45,7 @@ Public PbTmpKaisoList
 Private Sub Cmd検索_Click()
     Call コード検索実行
 End Sub
+
 Private Sub Cmd検索_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
     Call コード検索実行
 End Sub
@@ -57,6 +58,7 @@ Private Sub KaisoHyouji_Change()
     KaisoListBox.List = 階層リストを指定階層までのリスト取得(PbTmpKaisoList, ListNo)
     
 End Sub
+
 Sub コード検索実行()
     Dim KensakuWord As String
     KensakuWord = txtKensaku.Value
@@ -172,6 +174,7 @@ Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     Me.Left = 20
 
 End Sub
+
 Private Sub UserForm_Initialize()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -316,6 +319,7 @@ Private Sub UserForm_Initialize()
     End With
     
 End Sub
+
 Private Sub VBProjectListBox_Click()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -364,6 +368,7 @@ Private Sub VBProjectListBox_Click()
     Next I
     
 End Sub
+
 Private Sub ModuleListBox_Click()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -411,6 +416,7 @@ Private Sub ModuleListBox_Click()
 ErrorEscape:
 
 End Sub
+
 Private Sub ProcedureListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
         
@@ -428,6 +434,7 @@ Private Sub ProcedureListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 'ErrorEscape:
 
 End Sub
+
 Private Sub ProcedureListBox_Click()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -489,6 +496,7 @@ Private Sub ProcedureListBox_Click()
     Next I
 
 End Sub
+
 Private Sub KaisoListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
         
@@ -506,6 +514,7 @@ Private Sub KaisoListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 
 ErrorEscape:
 End Sub
+
 Private Sub KaisoListBox_Click()
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     Dim TmpCode
@@ -538,6 +547,7 @@ Private Sub KaisoListBox_Click()
     
 
 End Sub
+
 Private Sub SiyosakiListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
         
@@ -551,6 +561,7 @@ Private Sub SiyosakiListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 ErrorEscape:
 
 End Sub
+
 Private Sub SiyosakiListBox_Click()
 
     Dim I% '数え上げ用(Integer型)
