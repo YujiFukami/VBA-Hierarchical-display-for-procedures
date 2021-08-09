@@ -28,6 +28,7 @@ Function フォーム用VBProject作成()
         Set TmpVBProject = VBProjectList(I)
         Set TmpClassVBProject = New classVBProject
         TmpClassVBProject.MyName = TmpVBProject.Name
+        TmpClassVBProject.MyBookName = Dir(TmpVBProject.FileName)
         
         For J = 1 To TmpVBProject.VBComponents.Count
             Set TmpClassModule = New classModule
@@ -36,6 +37,7 @@ Function フォーム用VBProject作成()
             TmpClassModule.Name = TmpModule.Name
             TmpClassModule.VBProjectName = TmpClassVBProject.Name
             TmpClassModule.ModuleType = モジュール種類判定(TmpModule.Type)
+            TmpClassModule.BookName = TmpClassVBProject.BookName
             
             TmpProcedureNameList = モジュールのプロシージャ名一覧取得(TmpModule)
             Set TmpCodeDict = モジュールのコード一覧取得(TmpModule)
@@ -51,6 +53,7 @@ Function フォーム用VBProject作成()
                     Set TmpClassProcedure.KensakuCode = コードを検索用に変更(TmpCodeDict(TmpProcedureName))
                     TmpClassProcedure.VBProjectName = TmpClassVBProject.Name
                     TmpClassProcedure.ModuleName = TmpClassModule.Name
+                    TmpClassProcedure.BookName = TmpClassModule.BookName
                     TmpClassModule.AddProcedure TmpClassProcedure
                 Next II
             End If

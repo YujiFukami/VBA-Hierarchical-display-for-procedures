@@ -298,6 +298,28 @@ Private Sub ListViewProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.Colu
     
 End Sub
 
+Private Sub ListViewProcedure_DblClick()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+       
+    If UBound(PriProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriProcedureList, 1)
+        Select Case Me.ListViewProcedure.SelectedItem
+            Case PriProcedureList(I).Name
+                
+                Set PriShowProcedure = PriProcedureList(I)
+                
+                Call 指定プロシージャVBE画面表示(PriShowProcedure)
+                                
+        End Select
+    Next I
+    
+
+End Sub
+
 Private Sub ListViewUseProcedure_Click()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -335,6 +357,26 @@ Private Sub ListViewUseProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.C
     
 End Sub
 
+Private Sub ListViewUseProcedure_DblClick()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+       
+    If UBound(PriProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriUseProcedureList, 1)
+        Select Case Me.ListViewUseProcedure.SelectedItem
+            Case PriUseProcedureList(I).Name
+                
+                Set PriShowProcedure = PriUseProcedureList(I)
+                
+                Call 指定プロシージャVBE画面表示(PriShowProcedure)
+                                
+        End Select
+    Next I
+
+End Sub
 
 Private Sub TreeProcedure_NodeClick(ByVal Node As MSComctlLib.Node)
     
@@ -727,7 +769,7 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
     
 End Sub
 
-Sub モジュールリストビュー初期化()
+Private Sub モジュールリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewModule.ListItems.Count
@@ -736,7 +778,7 @@ Sub モジュールリストビュー初期化()
 
 End Sub
 
-Sub プロシージャリストビュー初期化()
+Private Sub プロシージャリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewProcedure.ListItems.Count
@@ -745,7 +787,7 @@ Sub プロシージャリストビュー初期化()
 
 End Sub
 
-Sub 使用プロシージャリストビュー初期化()
+Private Sub 使用プロシージャリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewUseProcedure.ListItems.Count
@@ -754,12 +796,23 @@ Sub 使用プロシージャリストビュー初期化()
 
 End Sub
 
-Sub コードプロシージャリストビュー初期化()
-    
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+Private Sub コードプロシージャリストビュー初期化()
+        Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewCode.ListItems.Count
         Me.ListViewCode.ListItems.Remove (1)
     Next I
 
 End Sub
 
+Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
+'https://www.relief.jp/docs/excel-vba-application-goto-reference.html
+    Dim ReferenceStr$
+    With ShowProcedure
+        ReferenceStr = .BookName & "!" & .ModuleName & "." & .Name
+    End With
+    
+    On Error Resume Next
+    Application.Goto Reference:=ReferenceStr
+    On Error GoTo 0
+
+End Sub

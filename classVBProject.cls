@@ -11,6 +11,7 @@ Option Explicit
 
 Public Name$
 Public Modules As Collection
+Public BookName$
 
 Property Get MyName()
     MyName = Name
@@ -31,4 +32,13 @@ End Sub
 Public Function Item(Index&) As classModule
     Set Item = Modules(Index)
 End Function
+
+'ブックの名前
+Property Get MyBookName()
+    MyBookName = BookName
+End Property
+
+Property Let MyBookName(InputBookName)
+    BookName = InputBookName
+End Property
 
