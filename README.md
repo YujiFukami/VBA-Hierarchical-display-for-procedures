@@ -7,7 +7,7 @@ VBA階層化表示フォーム
 「VBAプロジェクトオブジェクトモデルへのアクセスを信頼する」にチェックを入れておく
 ![Excelの設定](https://user-images.githubusercontent.com/73621859/126287884-57db4a75-3f34-4b35-b23d-f705067a1869.jpg)
 
-②「frmKaiso.fm」と「ModKaiso.bas」をダウンロードし、VBEにインポートする。
+②「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
 
 ③セルに「=Kaiso()」と入力するとプロシージャの一覧、階層化表示のフォームが出現する。
 ![1 KAISO()](https://user-images.githubusercontent.com/73621859/126260383-018720ef-904d-48ed-a82c-41041c497c89.jpg)
