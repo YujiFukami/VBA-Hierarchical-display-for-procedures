@@ -8,6 +8,21 @@ VBA階層化表示フォーム
 ![Excelの設定](https://user-images.githubusercontent.com/73621859/126287884-57db4a75-3f34-4b35-b23d-f705067a1869.jpg)
 
 ②「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
+また、下記ライブラリを追加で参照すること。
+
+「Microsoft Forms 2.0 Object Library」→ListView,TreeViewを動かすためっぽい
+
+「Microsoft Windows Common Controls 6.0(SP6)」→ListView,TreeViewを動かすためっぽい
+
+「Microsoft Visual Basic for Applications Extensibility 5.3」→VBAコードをVBAで参照するため
+
+![階層化フォーム 参照ライブラリ](https://user-images.githubusercontent.com/73621859/128787617-59d52e7e-0439-4f6c-9877-4bfe11e8d745.jpg)
+
+TreeViewコントロールはExcelバージョン,Windows環境で動いたり動かなかったりするらしいので注意すること。
+
+実行環境など報告していただくと感謝感激雨霰。
+
+ちなみに、小生の実行環境は「Windows10 64bit,Excel2019」
 
 ③セルに「=Kaiso()」と入力するとプロシージャの一覧、階層化表示のフォームが出現する。
 ![1 KAISO()](https://user-images.githubusercontent.com/73621859/126260383-018720ef-904d-48ed-a82c-41041c497c89.jpg)
