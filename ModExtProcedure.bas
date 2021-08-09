@@ -578,3 +578,4 @@ Private Function コードからプロシージャのタイプと使用範囲取得(InputCode, Procedu
     コードからプロシージャのタイプと使用範囲取得 = Output
 
 End Function
+
