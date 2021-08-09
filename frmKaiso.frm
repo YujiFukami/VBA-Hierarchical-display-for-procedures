@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmKaiso 
    Caption         =   "階層化表示フォーム"
-   ClientHeight    =   9432
+   ClientHeight    =   9072
    ClientLeft      =   36
    ClientTop       =   408
-   ClientWidth     =   15480
+   ClientWidth     =   15396
    OleObjectBlob   =   "frmKaiso.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'オーナー フォームの中央
@@ -14,148 +14,483 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
 Option Explicit
+'色付け用の列挙型(モジュール)
+Private Enum ModuleColor
+    Module = rgbBlue
+    Document = rgbGreen
+    Class = rgbLightPink
+    Form = rgbRed
+    ActiveX = rgbLightGray
+End Enum
+
+'色付け用の列挙型(プロシージャ)
+Private Enum ProcedureColor
+    SubColor = rgbOrange
+    FunctionColor = rgbGreen
+    GetColor = rgbBlue
+    SetColor = rgbRed
+    LetColor = rgbPink
+    
+End Enum
+
 '起動中VBProjectの全情報
-Public PbUnLockVBProjectList
-Public PbUnLockVBProjectFileNameList
-Public PbModuleList
-Public PbProcedureList
-Public PbProcedureNameList
-Public PbProcedureCodeList
-Public PbShiyoProcedureListList
-Public PbShiyoSakiProcedureListList
-Public PbKaisoList
+Private PriVBProjectNameList
+Private PriVBProjectList() As classVBProject
+Private PriModuleList() As classModule
+Private PriProcedureList() As ClassProcedure
+Private PriUseProcedureList() As ClassProcedure
+Private PriProcedure As ClassProcedure
+Private PriShowProcedure As ClassProcedure
+Private PriTreeProcedureList() As ClassProcedure
+Private PriSearchProcedureList() As ClassProcedure
+Private PriExtProcedureList() As ClassProcedure
 
-Public PbAllProcedureNameList
-Public PbAllInfoList
-
-'VBProjectListBoxで選択したVBProjectの情報のみを格納
-Public PbOutputModuleList
-Public PbOutputProcedureList
-Public PbOutputProcedureNameList
-Public PbOutputProcedureCodeList
-Public PbOutputShiyoProcedureListList
-Public PbOutputShiyoSakiProcedureListList
-Public PbOutputKaisoList
-
-Public PbTmpKaisoList
-
-Private Sub Cmd検索_Click()
-    Call コード検索実行
-End Sub
-
-Private Sub Cmd検索_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-    Call コード検索実行
-End Sub
-
-Private Sub KaisoHyouji_Change()
-    Dim ListNo As Integer
-    ListNo = KaisoHyouji.ListIndex
-'    Stop
+Private Sub CmdCodeCopy_Click()
     
-    KaisoListBox.List = 階層リストを指定階層までのリスト取得(PbTmpKaisoList, ListNo)
+    Call コードのコピー
     
 End Sub
 
-Sub コード検索実行()
-    Dim KensakuWord As String
-    KensakuWord = txtKensaku.Value
-    KensakuWord = StrConv(KensakuWord, vbLowerCase)
+Private Sub CmdExt_Click()
     
-    If KensakuWord = "" Then
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim ExtProcedureList
+    ExtProcedureList = 外部参照プロシージャリスト作成(PriVBProjectList)
+    
+    If Me.ListVBProject.ListIndex < 0 Then
         Exit Sub
     End If
     
-    Dim KensakuWordList
-    KensakuWordList = Split(KensakuWord, " ")
-    KensakuWordList = Application.Transpose(KensakuWordList)
-    KensakuWordList = Application.Transpose(KensakuWordList)
+    PriExtProcedureList = ExtProcedureList(Me.ListVBProject.ListIndex + 1)
     
-    Dim I%, J%, I2%, N%, K%
-    Dim KensakuKosu%
-    KensakuKosu = UBound(KensakuWordList, 1)
+    PriProcedureList = PriExtProcedureList
     
-    Dim TmpCodeListList
-    Dim TmpCodeList
-    TmpCodeListList = PbProcedureCodeList
-    Dim TmpProcedureListList
-    Dim TmpProcedureList
-    TmpProcedureListList = PbProcedureList
-    Dim TmpSiyosakiListList
-    Dim TmpSiyosakiList
-    TmpSiyosakiListList = PbShiyoSakiProcedureListList
-    Dim TmpSiyoListList
-    Dim TmpSiyoList
-    TmpSiyoListList = PbShiyoProcedureListList
-    Dim TmpKaisoListList
-    Dim TmpKaisoList
-    TmpKaisoListList = PbKaisoList
+    Call プロシージャリストビュー初期化
+    Call 使用プロシージャリストビュー初期化
     
-    Dim TmpCode
-    Dim TmpItiGyo
-    Dim TmpKensakuWord As String
-    Dim TmpKensakuHanteiList
-    
-    Dim NaiNaraTrue As Boolean
-    Dim AruNaraTrue As Boolean
-    
-    Dim KensakuProcedureList, KensakuCodeList, KensakuSiyosakiList, KensakuSiyoList, KensakuKaisoList
-    K = 0
-    ReDim KensakuProcedureList(1 To 1)
-    ReDim KensakuCodeList(1 To 1)
-    ReDim KensakuSiyosakiList(1 To 1)
-    ReDim KensakuSiyoList(1 To 1)
-    ReDim KensakuKaisoList(1 To 1)
-    
-    For I = 1 To UBound(TmpCodeListList, 1)
-        TmpCodeList = TmpCodeListList(I)
-        TmpSiyosakiList = TmpSiyosakiListList(I)
-        TmpSiyoList = TmpSiyoListList(I)
-        TmpKaisoList = TmpKaisoListList(I)
+    If Not PriExtProcedureList(1) Is Nothing Then
         
-        For I2 = 1 To UBound(TmpCodeList, 1)
-            TmpCode = TmpCodeList(I2)
-            ReDim TmpKensakuHanteiList(1 To KensakuKosu)
-            For J = 1 To KensakuKosu
-                TmpKensakuWord = KensakuWordList(J)
-                
-                For Each TmpItiGyo In TmpCode
-                    If InStr(1, TmpItiGyo, TmpKensakuWord) <> 0 Then
-                        TmpKensakuHanteiList(J) = 1
-                        Exit For
-                    End If
-                Next
-            Next J
+        For I = 1 To UBound(PriExtProcedureList, 1)
+                        
+            With Me.ListViewProcedure.ListItems.Add
+                .Text = PriExtProcedureList(I).Name 'プロシージャ名
+                .SubItems(1) = PriExtProcedureList(I).UseProcedure.Count '使用プロシージャ個数
+                .SubItems(2) = PriExtProcedureList(I).VBProjectName 'VBProject名
+                .SubItems(3) = PriExtProcedureList(I).ModuleName 'モジュール名
+                .SubItems(4) = PriExtProcedureList(I).RangeOfUse 'プロシージャ使用可能範囲
+                .SubItems(5) = PriExtProcedureList(I).ProcedureType 'プロシージャ種類
+            End With
             
-            If WorksheetFunction.Sum(TmpKensakuHanteiList) = KensakuKosu Then
-                K = K + 1
-                ReDim Preserve KensakuProcedureList(1 To K)
-                ReDim Preserve KensakuCodeList(1 To K)
-                ReDim Preserve KensakuSiyosakiList(1 To K)
-                ReDim Preserve KensakuSiyoList(1 To K)
-                ReDim Preserve KensakuKaisoList(1 To K)
-                TmpProcedureList = TmpProcedureListList(I)
-                KensakuProcedureList(K) = TmpProcedureList(I2, 2)
-                KensakuCodeList(K) = TmpCode
-                KensakuSiyosakiList(K) = TmpSiyosakiList(I2)
-                KensakuSiyoList(K) = TmpSiyoList(I2)
-                KensakuKaisoList(K) = TmpKaisoList(I2)
-                
-            End If
-        Next I2
+            Me.ListViewProcedure.ListItems(I).ForeColor = プロシージャ種類での色取得(PriExtProcedureList(I).ProcedureType)
+        
+        Next I
+        
+        
+    End If
+
+End Sub
+
+
+Private Sub CmdSwitch_Click()
+    
+    If Me.CmdSwitch.Caption = "コード表示" Then
+        '階層表示モードに切り替え
+        Me.CmdSwitch.Caption = "階層表示"
+'        Me.ListViewCode.Visible = False
+        Me.ListViewCode.Height = 210
+        Me.ListViewCode.Top = 240
+        Me.TreeProcedure.Visible = True
+        If Not PriShowProcedure Is Nothing Then
+            Call プロシージャコード表示(PriShowProcedure)
+            Call ツリービューにプロシージャの階層表示(PriShowProcedure)
+        End If
+    Else
+        'コード表示モードに切り替え
+        Me.CmdSwitch.Caption = "コード表示"
+'        Me.ListViewCode.Visible = True
+        Me.ListViewCode.Height = 408
+        Me.ListViewCode.Top = 39
+        Me.TreeProcedure.Visible = False
+        If Not PriShowProcedure Is Nothing Then
+            Call プロシージャコード表示(PriShowProcedure)
+        End If
+    End If
+
+End Sub
+
+
+Private Sub listVBProject_Click()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim TmpModuleName As String
+    Dim TmpProcedureList
+    Dim TmpProcedureKosu As Integer
+    
+    For I = 1 To Me.ListViewModule.ListItems.Count
+        Me.ListViewModule.ListItems.Remove (1)
+    Next I
+    For I = 1 To Me.ListViewProcedure.ListItems.Count
+        Me.ListViewProcedure.ListItems.Remove (1)
+    Next I
+    For I = 1 To Me.ListViewUseProcedure.ListItems.Count
+        Me.ListViewUseProcedure.ListItems.Remove (1)
     Next I
     
-    PbOutputProcedureNameList = KensakuProcedureList
-    PbOutputProcedureCodeList = KensakuCodeList
-    PbOutputShiyoProcedureListList = KensakuSiyoList
-    PbOutputShiyoSakiProcedureListList = KensakuSiyosakiList
-    PbOutputKaisoList = KensakuKaisoList
+    Me.txtVBProject.Text = ""
+    Me.txtModule.Text = ""
+    Me.txtKensaku.Text = ""
+    For I = 1 To Me.ListViewCode.ListItems.Count
+        Me.ListViewCode.ListItems.Remove (1)
+    Next I
     
-    ProcedureListBox.List = KensakuProcedureList
+    For I = 1 To UBound(PriVBProjectList, 1)
+        Select Case Me.ListVBProject.List(Me.ListVBProject.ListIndex)
+            Case PriVBProjectList(I).Name
+                
+                ReDim PriModuleList(PriVBProjectList(I).Modules.Count)
+                
+                For J = 1 To UBound(PriModuleList, 1)
+                    
+                    Set PriModuleList(J) = PriVBProjectList(I).Modules(J)
+                    
+                    With Me.ListViewModule.ListItems.Add
+                        .Text = PriModuleList(J).Name 'モジュール名
+                        .SubItems(1) = PriModuleList(J).Procedures.Count 'プロシージャの個数
+                        .SubItems(2) = PriModuleList(J).ModuleType 'モジュール種類
+                        
+                    End With
+                    
+                    Me.ListViewModule.ListItems(J).ForeColor = モジュール種類での色取得(PriModuleList(J).ModuleType)
+                Next J
+                
+                Exit For
+                
+        End Select
+    Next I
+
+End Sub
+
+
+Private Sub listViewModule_Click()
     
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    For I = 1 To Me.ListViewProcedure.ListItems.Count
+        Me.ListViewProcedure.ListItems.Remove (1)
+    Next I
+    For I = 1 To Me.ListViewUseProcedure.ListItems.Count
+        Me.ListViewUseProcedure.ListItems.Remove (1)
+    Next I
+    Me.txtVBProject.Text = ""
+    Me.txtModule.Text = ""
+    Me.txtKensaku.Text = ""
     
+    For I = 1 To UBound(PriModuleList, 1)
+        Select Case Me.ListViewModule.SelectedItem
+            Case PriModuleList(I).Name
+                If PriModuleList(I).Procedures.Count <> 0 Then
+                    ReDim PriProcedureList(1 To PriModuleList(I).Procedures.Count)
+                    
+                    For J = 1 To UBound(PriProcedureList, 1)
+                        
+                        Set PriProcedureList(J) = PriModuleList(I).Procedures(J)
+                        
+                        With Me.ListViewProcedure.ListItems.Add
+                            .Text = PriProcedureList(J).Name 'プロシージャ名
+                            .SubItems(1) = PriProcedureList(J).UseProcedure.Count '使用プロシージャ個数
+                            .SubItems(2) = PriProcedureList(J).VBProjectName 'VBProject名
+                            .SubItems(3) = PriProcedureList(J).ModuleName 'モジュール名
+                            .SubItems(4) = PriProcedureList(J).RangeOfUse 'プロシージャ使用可能範囲
+                            .SubItems(5) = PriProcedureList(J).ProcedureType 'プロシージャ種類
+                        End With
+                        
+                        Me.ListViewProcedure.ListItems(J).ForeColor = プロシージャ種類での色取得(PriProcedureList(J).ProcedureType)
+                    
+                    Next J
+                    
+                    Exit For
+                Else
+                    ReDim PriProcedureList(0 To 0)
+                End If
+        End Select
+    Next I
+  
+    
+End Sub
+
+Private Sub ListViewModule_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
+            
+    With ListViewModule
+        .SortKey = ColumnHeader.Index - 1
+        .SortOrder = .SortOrder Xor lvwDescending
+        .Sorted = True
+    End With
+
+End Sub
+
+Private Sub ListViewProcedure_Click()
+    
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    
+    For I = 1 To Me.ListViewUseProcedure.ListItems.Count
+        Me.ListViewUseProcedure.ListItems.Remove (1)
+    Next I
+    Me.txtVBProject.Text = ""
+    Me.txtModule.Text = ""
+    
+    For I = 1 To Me.ListViewCode.ListItems.Count
+        Me.ListViewCode.ListItems.Remove (1)
+    Next I
+    
+    If UBound(PriProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriProcedureList, 1)
+        Select Case Me.ListViewProcedure.SelectedItem
+            Case PriProcedureList(I).Name
+                
+                Set PriShowProcedure = PriProcedureList(I)
+                If Me.CmdSwitch.Caption = "コード表示" Then
+                    Call プロシージャコード表示(PriShowProcedure)
+                Else
+                    Call ツリービューにプロシージャの階層表示(PriShowProcedure)
+                    Call プロシージャコード表示(PriShowProcedure)
+                End If
+                
+                If PriProcedureList(I).UseProcedure.Count <> 0 Then
+                    ReDim PriUseProcedureList(1 To PriProcedureList(I).UseProcedure.Count)
+                    
+                    For J = 1 To UBound(PriUseProcedureList, 1)
+                        
+                        Set PriUseProcedureList(J) = PriProcedureList(I).UseProcedure(J)
+                        
+                        With Me.ListViewUseProcedure.ListItems.Add
+                            .Text = PriUseProcedureList(J).Name 'プロシージャ名
+                            .SubItems(1) = PriUseProcedureList(J).UseProcedure.Count '使用プロシージャ個数
+                            .SubItems(2) = PriUseProcedureList(J).VBProjectName 'VBProject名
+                            .SubItems(3) = PriUseProcedureList(J).ModuleName 'モジュール名
+                            .SubItems(4) = PriUseProcedureList(J).RangeOfUse 'プロシージャ使用可能範囲
+                            .SubItems(5) = PriUseProcedureList(J).ProcedureType 'プロシージャ種類
+                        End With
+                        
+                        Me.ListViewUseProcedure.ListItems(J).ForeColor = プロシージャ種類での色取得(PriUseProcedureList(J).ProcedureType)
+                    
+                    Next J
+                    
+                    Exit For
+                Else
+                    ReDim PriUseProcedureList(0 To 0)
+                End If
+                
+        End Select
+    Next I
+  
+End Sub
+
+Private Sub ListViewProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
+
+    With ListViewProcedure
+        .SortKey = ColumnHeader.Index - 1
+        .SortOrder = .SortOrder Xor lvwDescending
+        .Sorted = True
+    End With
+    
+End Sub
+
+Private Sub ListViewUseProcedure_Click()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    
+    Me.txtVBProject.Text = ""
+    Me.txtModule.Text = ""
+
+    If UBound(PriUseProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriUseProcedureList, 1)
+        Select Case Me.ListViewUseProcedure.SelectedItem
+            Case PriUseProcedureList(I).Name
+                
+                Set PriShowProcedure = PriUseProcedureList(I)
+                If Me.CmdSwitch.Caption = "コード表示" Then
+                    Call プロシージャコード表示(PriShowProcedure)
+                Else
+                    Call ツリービューにプロシージャの階層表示(PriShowProcedure)
+                    Call プロシージャコード表示(PriShowProcedure)
+                End If
+                
+        End Select
+    Next I
+
+End Sub
+Private Sub ListViewUseProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
+
+    With ListViewUseProcedure
+        .SortKey = ColumnHeader.Index - 1
+        .SortOrder = .SortOrder Xor lvwDescending
+        .Sorted = True
+    End With
+    
+End Sub
+
+
+Private Sub TreeProcedure_NodeClick(ByVal Node As MSComctlLib.Node)
+    
+    Dim TmpProcedure As ClassProcedure
+    Set TmpProcedure = PriTreeProcedureList(Node.Index)
+    
+    Call プロシージャコード表示(TmpProcedure)
+    
+End Sub
+
+
+Private Sub UserForm_Initialize()
+
+    PriVBProjectList = フォーム用VBProject作成
+    
+    Dim AllProcedureList
+    AllProcedureList = 全プロシージャ一覧作成(PriVBProjectList)
+    Call プロシージャ内の使用プロシージャ取得(PriVBProjectList, AllProcedureList)
+    
+    'フォーム用パブリック変数設定
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    N = UBound(PriVBProjectList, 1)
+    ReDim PbVBProjectNameList(1 To N)
+    For I = 1 To N
+        PbVBProjectNameList(I) = PriVBProjectList(I).Name
+    Next I
+        
+    'フォーム設定
+    Me.ListVBProject.List = PbVBProjectNameList
+    
+    With Me.ListViewModule 'モジュールのリストビューのタブ設定
+        .View = lvwReport
+        .LabelEdit = lvwManual
+        .HideSelection = False
+        .AllowColumnReorder = True
+        .FullRowSelect = True
+        .Gridlines = True
+        .ColumnHeaders.Add , "モジュール名", "モジュール名"
+        .ColumnHeaders.Add , "個数", "個数"
+        .ColumnHeaders.Add , "種類", "種類"
+        .ColumnHeaders(2).Width = 16
+    End With
+    
+    With Me.ListViewProcedure 'プロシージャのリストビューのタブ設定
+        .View = lvwReport
+        .LabelEdit = lvwManual
+        .HideSelection = False
+        .AllowColumnReorder = True
+        .FullRowSelect = True
+        .Gridlines = True
+        .ColumnHeaders.Add , "プロシージャ名", "プロシージャ名"
+        .ColumnHeaders.Add , "個数", "個数"
+        .ColumnHeaders.Add , "VBProject", "VBProject"
+        .ColumnHeaders.Add , "モジュール", "モジュール"
+        .ColumnHeaders.Add , "範囲", "範囲"
+        .ColumnHeaders.Add , "種類", "種類"
+        .ColumnHeaders(2).Width = 16
+        .ColumnHeaders(3).Width = 20
+        .ColumnHeaders(4).Width = 35
+        .ColumnHeaders(5).Width = 25
+        .ColumnHeaders(6).Width = 25
+    End With
+   
+    With Me.ListViewUseProcedure '使用プロシージャのリストビューのタブ設定
+        .View = lvwReport
+        .LabelEdit = lvwManual
+        .HideSelection = False
+        .AllowColumnReorder = True
+        .FullRowSelect = True
+        .Gridlines = True
+        .ColumnHeaders.Add , "プロシージャ名", "プロシージャ名"
+        .ColumnHeaders.Add , "個数", "個数"
+        .ColumnHeaders.Add , "VBProject", "VBProject"
+        .ColumnHeaders.Add , "モジュール", "モジュール"
+        .ColumnHeaders.Add , "範囲", "範囲"
+        .ColumnHeaders.Add , "種類", "種類"
+        .ColumnHeaders(2).Width = 16
+        .ColumnHeaders(3).Width = 20
+        .ColumnHeaders(4).Width = 35
+        .ColumnHeaders(5).Width = 25
+        .ColumnHeaders(6).Width = 25
+    End With
+
+    With Me.ListViewCode 'コードのリストビューのタブ設定
+        .View = lvwReport
+        .LabelEdit = lvwManual
+        .HideSelection = False
+        .AllowColumnReorder = True
+        .FullRowSelect = True
+        .Gridlines = True
+        .ColumnHeaders.Add , "行", "行"
+        .ColumnHeaders.Add , "コード", "コード"
+        .ColumnHeaders(1).Width = 16
+        .ColumnHeaders(2).Width = 500
+    End With
+    
+    Me.ListViewCode.Visible = True
+    Me.TreeProcedure.Visible = False
+    
+End Sub
+
+Private Sub listProcedure_Click()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim TmpModuleName As String
+    Dim TmpProcedureList
+    Dim TmpProcedureKosu As Integer
+    
+    Me.listKaiso.Clear
+    Me.txtCode.Text = ""
+    
+    For I = 1 To UBound(PriProcedureList, 1)
+        Select Case Split(Me.listProcedure.List(Me.listProcedure.ListIndex), "(")(0) 'プロシージャ名の部分だけ抜き出す
+            Case PriProcedureList(I).Name
+                
+                Me.txtVBProject.Text = PriProcedureList(I).VBProjectName
+                Me.txtModule.Text = PriProcedureList(I).ModuleName
+                Me.txtCode.Text = PriProcedureList(I).Code
+                
+                If PriProcedureList(I).UseProcedure.Count <> 0 Then
+                    ReDim PriUseProcedureList(1 To PriProcedureList(I).UseProcedure.Count)
+                    
+                    For J = 1 To UBound(PriUseProcedureList, 1)
+                        
+                        Set PriUseProcedureList(J) = PriProcedureList(I).UseProcedure(J)
+                        Me.listUseProcedure.AddItem PriUseProcedureList(J).Name
+                    
+                    Next J
+                    
+                    Exit For
+                End If
+                
+        End Select
+    Next I
+End Sub
+
+Private Sub listUseProcedure_Click()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim TmpModuleName As String
+    Dim TmpProcedureList
+    Dim TmpProcedureKosu As Integer
+    
+    Me.txtCode.Text = ""
+    
+    For I = 1 To UBound(PriUseProcedureList, 1)
+        Select Case Me.listUseProcedure.List(Me.listUseProcedure.ListIndex)
+            Case PriUseProcedureList(I).Name
+                
+                Me.txtVBProject.Text = PriUseProcedureList(I).VBProjectName
+                Me.txtModule.Text = PriUseProcedureList(I).ModuleName
+                Me.txtCode.Text = PriUseProcedureList(I).Code
+
+        End Select
+    Next I
+
 End Sub
 
 Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
@@ -175,418 +510,256 @@ Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 
 End Sub
 
-Private Sub UserForm_Initialize()
+Private Sub Cmd検索_Click()
+    Call コード検索実行(Me.txtKensaku.Text)
+End Sub
 
+Private Sub Cmd検索_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If KeyCode = vbKeyReturn Then
+        Call コード検索実行(Me.txtKensaku.Text)
+    End If
+End Sub
+
+Private Sub txtKensaku_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If KeyCode = vbKeyReturn Then
+        Call コード検索実行(Me.txtKensaku.Text)
+    End If
+End Sub
+
+Sub コード検索実行(SearchStr$)
+
+    Dim TmpVBProject As classVBProject
+    Dim TmpModule As classModule
+    Dim TmpProcedure As ClassProcedure
+    
+    ReDim PriSearchProcedureList(1 To 1)
+    
+    Dim I%, J%, II%, K%, M%, N% '数え上げ用(Integer型)
+    For I = 1 To UBound(PriVBProjectList, 1)
+        Set TmpVBProject = PriVBProjectList(I)
+        For J = 1 To TmpVBProject.Modules.Count
+            Set TmpModule = TmpVBProject.Modules(J)
+            For II = 1 To TmpModule.Procedures.Count
+                Set TmpProcedure = TmpModule.Procedures(II)
+                If InStr(1, StrConv(TmpProcedure.Code, vbUpperCase), StrConv(SearchStr, vbUpperCase)) > 0 Then
+                    If Not PriSearchProcedureList(1) Is Nothing Then
+                        ReDim Preserve PriSearchProcedureList(1 To UBound(PriSearchProcedureList, 1) + 1)
+                    End If
+                    
+                    Set PriSearchProcedureList(UBound(PriSearchProcedureList, 1)) = TmpProcedure
+                End If
+            Next II
+        Next J
+    Next I
+    
+    If Not PriSearchProcedureList(1) Is Nothing Then
+        '検索結果あり
+        
+        'リストビュー初期化
+        For I = 1 To Me.ListViewProcedure.ListItems.Count
+            Me.ListViewProcedure.ListItems.Remove (1)
+        Next I
+        For I = 1 To Me.ListViewUseProcedure.ListItems.Count
+            Me.ListViewUseProcedure.ListItems.Remove (1)
+        Next I
+        
+        For I = 1 To UBound(PriSearchProcedureList, 1)
+            
+            With Me.ListViewProcedure.ListItems.Add
+                .Text = PriSearchProcedureList(I).Name 'プロシージャ名
+                .SubItems(1) = PriSearchProcedureList(I).UseProcedure.Count '使用プロシージャ個数
+                .SubItems(2) = PriSearchProcedureList(I).VBProjectName 'VBProject名
+                .SubItems(3) = PriSearchProcedureList(I).ModuleName 'モジュール名
+                .SubItems(4) = PriSearchProcedureList(I).RangeOfUse 'プロシージャ使用可能範囲
+                .SubItems(5) = PriSearchProcedureList(I).ProcedureType 'プロシージャ種類
+            End With
+            
+            Me.ListViewProcedure.ListItems(I).ForeColor = プロシージャ種類での色取得(PriSearchProcedureList(I).ProcedureType)
+        
+        Next I
+        
+        PriProcedureList = PriSearchProcedureList
+        
+        Me.Cmd検索.Caption = "検索" & "(" & UBound(PriSearchProcedureList, 1) & ")"
+        
+    Else
+        MsgBox ("「" & SearchStr & "」" & "検索で見つかりませんでした")
+    End If
+              
+End Sub
+
+
+
+Private Function モジュール種類での色取得(ModuleType$)
+    
+    Dim Output&
+    Select Case ModuleType
+    Case "標準モジュール"
+        Output = ModuleColor.Module
+    Case "クラスモジュール"
+        Output = ModuleColor.Class
+    Case "ユーザーフォーム"
+        Output = ModuleColor.Form
+    Case "ActiveX デザイナ"
+        Output = ModuleColor.ActiveX
+    Case "Document モジュール"
+        Output = ModuleColor.Document
+    End Select
+        
+    モジュール種類での色取得 = Output
+    
+End Function
+
+Private Function プロシージャ種類での色取得(ProcedureType$)
+    
+    Dim Output&
+    Select Case ProcedureType
+    Case "Sub"
+        Output = ProcedureColor.SubColor
+    Case "Function"
+        Output = ProcedureColor.FunctionColor
+    Case "Property Get"
+        Output = ProcedureColor.GetColor
+    Case "Property Let"
+        Output = ProcedureColor.LetColor
+    Case "Property Set"
+        Output = ProcedureColor.SetColor
+    End Select
+        
+    プロシージャ種類での色取得 = Output
+    
+End Function
+
+Private Sub プロシージャコード表示(ShowProcedure As ClassProcedure)
+    
+    
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim Dummy1, Dummy2
-    Dim TmpFileName As String
-    Dim TmpVBProject As Object, VBProjectCount As Byte
-    Dim TmpModuleList, TmpProcedureList, TmpProcedureNameList, TmpProcedureCodeList
-    Dim TmpProcedureKosu As Integer
-    Dim TmpCode, TmpProcedureName As String
-    Dim TmpSiyoProcedureList
-    Dim TmpSiyoProcedureListList, TmpSiyosakiProcedureListList
-    Dim AllSiyoProcedureListList
-    Dim TmpKaiso, TmpKaisoList
+    Dim TmpCode
     
-    '起動中のVBProjectのリスト取得'※※※※※※※※※※※※※※※※※※※※※※※※※※※
-    PbUnLockVBProjectList = 非ロックのVBProjectリスト取得
-    VBProjectCount = UBound(PbUnLockVBProjectList, 1)
-    
-    'VBProjectのファイル名のリストも作成しておく
-    ReDim PbUnLockVBProjectFileNameList(1 To VBProjectCount)
-    For I = 1 To VBProjectCount
-        Set Dummy1 = PbUnLockVBProjectList(I)
-        PbUnLockVBProjectFileNameList(I) = Dir(Dummy1.FileName) 'ファイル名抜出
+    '初期化
+    For I = 1 To Me.ListViewCode.ListItems.Count
+        Me.ListViewCode.ListItems.Remove (1)
     Next I
-
-    '各モジュール、プロシージャの名前、コードを取得'※※※※※※※※※※※※※※※※※※※※※※※※※※※
-    ReDim PbModuleList(1 To VBProjectCount)
-    ReDim PbProcedureList(1 To VBProjectCount)
-    ReDim PbProcedureNameList(1 To VBProjectCount)
-    ReDim PbProcedureCodeList(1 To VBProjectCount)
     
-    For I = 1 To VBProjectCount
-        Set TmpVBProject = PbUnLockVBProjectList(I)
-        TmpProcedureList = プロシージャ一覧取得(TmpVBProject) '1列目モジュール、2列目プロシージャ名、3列目プロシージャコード
-        If IsEmpty(TmpProcedureList) = False Then
-            TmpModuleList = モジュール一覧取得(TmpVBProject, TmpProcedureList) '1列目モジュール(オブジェクト形式)、2列目モジュール内のプロシージャリスト
+    TmpCode = Split(ShowProcedure.Code, vbLf)
+    TmpCode = Application.Transpose(Application.Transpose(TmpCode))
+        
+    Me.txtVBProject.Text = ShowProcedure.VBProjectName
+    Me.txtModule.Text = ShowProcedure.ModuleName
+    
+    For I = 1 To UBound(TmpCode) - 1
+        With Me.ListViewCode.ListItems.Add
+            .Text = I
+            .SubItems(1) = TmpCode(I)
             
-            TmpProcedureKosu = UBound(TmpProcedureList, 1)
+            If Me.txtKensaku.Text <> "" Then
+                If InStr(1, StrConv(.SubItems(1), vbUpperCase), StrConv(Me.txtKensaku.Text, vbUpperCase)) > 0 Then
+                    .ForeColor = rgbRed
+                    .Bold = True
+                End If
+            End If
             
-            ReDim TmpProcedureNameList(1 To TmpProcedureKosu)
-            ReDim TmpProcedureCodeList(1 To TmpProcedureKosu)
-               
-            For J = 1 To TmpProcedureKosu
-                TmpProcedureNameList(J) = TmpProcedureList(J, 2)
-                TmpProcedureCodeList(J) = TmpProcedureList(J, 3)
-            Next J
-            
-            'パブリック引数に格納
-            PbModuleList(I) = TmpModuleList
-            PbProcedureList(I) = TmpProcedureList
-            PbProcedureNameList(I) = TmpProcedureNameList
-            PbProcedureCodeList(I) = TmpProcedureCodeList
+        End With
+    Next I
+End Sub
+
+Private Sub コードのコピー()
+
+    If Not PriShowProcedure Is Nothing Then
+        Call ClipboardCopy(PriShowProcedure.Code, False)
+        
+        MsgBox ("「" & PriShowProcedure.Name & "」" & vbLf & _
+               "のコードをクリップボードにコピーしました")
+        
+    End If
+
+End Sub
+
+Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure)
+    
+    '初期化
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    For I = Me.TreeProcedure.Nodes.Count To 1 Step -1
+        Me.TreeProcedure.Nodes.Remove (I)
+    Next I
+    ReDim PriTreeProcedureList(1 To 1)
+    Set PriTreeProcedureList(1) = ShowProcedure
+    
+    With Me.TreeProcedure
+        .Nodes.Add Key:=ShowProcedure.Name, Text:=ShowProcedure.Name & "(" & ShowProcedure.UseProcedure.Count & ")"
+        .Nodes(1).Expanded = True
+        .Nodes(1).ForeColor = プロシージャ種類での色取得(ShowProcedure.ProcedureType)
+        
+    End With
+    
+    Me.txtVBProject.Text = ShowProcedure.VBProjectName
+    Me.txtModule.Text = ShowProcedure.ModuleName
+    
+    Call 再帰型ツリービューにプロシージャの階層表示(ShowProcedure, ShowProcedure.Name)
+    
+End Sub
+Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure, ParentKey$)
+    
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim TmpKey$
+    Dim TmpProcedure As ClassProcedure
+    With Me.TreeProcedure
+        
+        If ShowProcedure.UseProcedure.Count > 0 Then
+            For I = 1 To ShowProcedure.UseProcedure.Count
+                Set TmpProcedure = ShowProcedure.UseProcedure(I)
+                TmpKey = ParentKey & TmpProcedure.Name
+                .Nodes.Add Relative:=ParentKey, _
+                           Relationship:=tvwChild, Key:=TmpKey, _
+                           Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
+                
+                ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
+                Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
+                .Nodes(ParentKey & TmpProcedure.Name).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
+                
+                Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey)
+                .Nodes(ParentKey & TmpProcedure.Name).Expanded = True
+                
+                
+            Next I
         End If
-        
-    Next I
-        
-    '全VBProjectのプロシージャ名一覧を作成
-    PbAllProcedureNameList = 多重配列を一列にまとめる(PbProcedureNameList)
-    
-    
-    Dim KensakuProcedureNameList
-    ReDim KensakuProcedureNameList(1 To UBound(PbAllProcedureNameList, 1))
-    For I = 1 To UBound(PbAllProcedureNameList, 1)
-        KensakuProcedureNameList(I) = StrConv(PbAllProcedureNameList(I), vbLowerCase)
-    Next I
-    
-    '各プロシージャの使用関係をコードを読み取って取得'※※※※※※※※※※※※※※※※※※※※※※※※※※※
-    ReDim PbShiyoProcedureListList(1 To VBProjectCount)
-    ReDim PbShiyoSakiProcedureListList(1 To VBProjectCount)
-    
-    '使用プロシージャ取得
-    For I = 1 To VBProjectCount
-        TmpProcedureNameList = PbProcedureNameList(I)
-        TmpProcedureCodeList = PbProcedureCodeList(I)
-        TmpProcedureKosu = UBound(TmpProcedureNameList, 1)
-        
-        ReDim TmpSiyoProcedureListList(1 To TmpProcedureKosu)
-        
-        For J = 1 To TmpProcedureKosu
-            TmpCode = TmpProcedureCodeList(J)
-            TmpProcedureName = TmpProcedureNameList(J)
-            TmpSiyoProcedureList = プロシージャ内の使用プロシージャのリスト取得(TmpCode, PbAllProcedureNameList, KensakuProcedureNameList, TmpProcedureName)
-            TmpSiyoProcedureListList(J) = TmpSiyoProcedureList '使用先のリストをリストに格納
-        Next J
-        
-        PbShiyoProcedureListList(I) = TmpSiyoProcedureListList
-    
-    Next I
-    
-    '全VBProjectの使用プロシージャリストを一列にまとめる。
-    AllSiyoProcedureListList = 多重配列を一列にまとめる(PbShiyoProcedureListList)
-    
-    
-    '使用先プロシージャ取得
-    For I = 1 To VBProjectCount
-        TmpProcedureNameList = PbProcedureNameList(I)
-        TmpProcedureKosu = UBound(TmpProcedureNameList, 1)
-        
-        TmpSiyosakiProcedureListList = プロシージャの使用先のプロシージャのリスト取得(TmpProcedureNameList, AllSiyoProcedureListList)
-        
-        PbShiyoSakiProcedureListList(I) = TmpSiyosakiProcedureListList
-    
-    Next I
-
-    '全情報をひとまとめにしておく
-    PbAllInfoList = 全情報をひとまとめにする(PbUnLockVBProjectFileNameList, PbProcedureList, PbShiyoSakiProcedureListList)
-
-    'プロシージャの階層リストを取得する
-    ReDim PbKaisoList(1 To VBProjectCount)
-    
-    For I = 1 To VBProjectCount
-        PbOutputShiyoProcedureListList = PbShiyoProcedureListList(I)
-        PbOutputProcedureNameList = PbProcedureNameList(I)
-        TmpProcedureKosu = UBound(PbOutputProcedureNameList, 1)
-        
-        ReDim TmpKaisoList(1 To TmpProcedureKosu)
-        
-        For J = 1 To TmpProcedureKosu
-            TmpProcedureName = PbOutputProcedureNameList(J)
-            TmpKaiso = プロシージャの階層構造取得(TmpProcedureName, AllSiyoProcedureListList, _
-                                                    PbAllProcedureNameList)
-            TmpKaisoList(J) = TmpKaiso
-        Next J
-        
-        PbKaisoList(I) = TmpKaisoList
-        
-    Next I
-
-    'ListBox「起動中VBProjecct」に起動中のVBProjectのリスト出力'※※※※※※※※※※※※※※※※※※※※※※※※※※※
-    For I = 1 To UBound(PbUnLockVBProjectList, 1)
-        VBProjectListBox.AddItem PbUnLockVBProjectFileNameList(I)
-    Next I
-    
-    '階層表示のコンボボックスにアイテム追加
-    With KaisoHyouji
-        .AddItem "全部表示"
-        .AddItem "第1階層まで"
-        .AddItem "第2階層まで"
-        .AddItem "第3階層まで"
-        .AddItem "第4階層まで"
-        .AddItem "第5階層まで"
     End With
     
 End Sub
 
-Private Sub VBProjectListBox_Click()
-
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim TmpModuleName As String
-    Dim TmpProcedureList
-    Dim TmpProcedureKosu As Integer
-    
-    ModuleListBox.Clear
-    ProcedureListBox.Clear
-    KaisoListBox.Clear
-    ProcedureListBox.Clear
-    SiyosakiListBox.Clear
-    txtListBox.Text = ""
-    
-      
-    For I = 1 To UBound(PbUnLockVBProjectFileNameList, 1)
-        Select Case VBProjectListBox.List(VBProjectListBox.ListIndex)
-            Case PbUnLockVBProjectFileNameList(I)
-                
-                '選択したVBProjectの情報を格納
-                PbOutputModuleList = PbModuleList(I)
-                PbOutputProcedureList = PbProcedureList(I)
-                PbOutputProcedureNameList = PbProcedureNameList(I)
-                PbOutputProcedureCodeList = PbProcedureCodeList(I)
-                PbOutputShiyoProcedureListList = PbShiyoProcedureListList(I)
-                PbOutputShiyoSakiProcedureListList = PbShiyoSakiProcedureListList(I)
-                PbOutputKaisoList = PbKaisoList(I)
-                                
-                For J = 1 To UBound(PbOutputModuleList, 1)
-                    TmpModuleName = PbOutputModuleList(J, 1).Name
-                    TmpProcedureList = PbOutputModuleList(J, 2)
-                    
-                    If IsEmpty(TmpProcedureList) Then
-                        TmpProcedureKosu = 0
-                    Else
-                        TmpProcedureKosu = UBound(TmpProcedureList, 1)
-                    End If
-                    
-                    ModuleListBox.AddItem TmpModuleName & "(" & TmpProcedureKosu & ")" 'モジュール内のプロシージャの個数を後ろにつける
-                
-                Next J
-                
-                Exit For
-                
-        End Select
-    Next I
-    
-End Sub
-
-Private Sub ModuleListBox_Click()
-
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim TmpModuleBango As Integer
-    Dim TmpModuleName As String
-    Dim TmpProcedureList
-    Dim TmpProcedureName As String
-    Dim TmpKaisoList
-    Dim TmpKaisoKosu As Integer
-    Dim TmpListAddName As String
-    
-'    ModuleListBox.Clear
-    ProcedureListBox.Clear
-    KaisoListBox.Clear
-    ProcedureListBox.Clear
-    SiyosakiListBox.Clear
-    txtListBox.Text = ""
-        
-    TmpModuleBango = ModuleListBox.ListIndex + 1
-    TmpModuleName = PbOutputModuleList(TmpModuleBango, 1).Name
-    TmpProcedureList = PbOutputModuleList(TmpModuleBango, 2)
-    
-    On Error GoTo ErrorEscape
-    
-    If IsEmpty(TmpProcedureList) = False Then
-    
-        For I = 1 To UBound(TmpProcedureList, 1)
-            TmpProcedureName = TmpProcedureList(I)
-            
-            '各プロシージャでコード内で使用しているプロシージャの数を取得する。
-            For J = 1 To UBound(PbOutputProcedureList, 1)
-                If TmpProcedureName = PbOutputProcedureList(J, 2) Then
-                    TmpKaisoList = PbOutputKaisoList(J)
-                    TmpKaisoKosu = UBound(TmpKaisoList, 1) - 1
-                    TmpListAddName = TmpProcedureName & "(" & TmpKaisoKosu & ")" '使用プロシージャの個数を後ろにつける
-                    Exit For
-                End If
-            Next J
-            
-            ProcedureListBox.AddItem TmpListAddName
-
-        Next I
-    End If
- 
-ErrorEscape:
-
-End Sub
-
-Private Sub ProcedureListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
-        
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    
-    Dim TmpProcedureName As String
-
-    TmpProcedureName = ProcedureListBox.List(ProcedureListBox.ListIndex)
-    TmpProcedureName = 文字区切り(TmpProcedureName, "(", 1)
-    
-'    On Error GoTo ErrorEscape
-    On Error Resume Next
-    Application.GoTo Reference:=TmpProcedureName
-    On Error GoTo 0
-'ErrorEscape:
-
-End Sub
-
-Private Sub ProcedureListBox_Click()
+Sub モジュールリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    
-    Dim TmpProcedureName As String
-    Dim TmpSiyoProcedureList
-    Dim TmpSiyosakiProcedureList
-    Dim TmpKaisoList
-    Dim TmpCode
-    Dim ProcedureCode As String
-    
-    TmpProcedureName = ProcedureListBox.List(ProcedureListBox.ListIndex)
-    TmpProcedureName = 文字区切り(TmpProcedureName, "(", 1)
-    
-    '選択リスト全体表示リストボックスに選択した一行を表示
-    TotemoNagaiListBox.Clear
-    TotemoNagaiListBox.AddItem ProcedureListBox.List(ProcedureListBox.ListIndex)
-    
-    For I = 1 To UBound(PbOutputProcedureNameList, 1)
-        If TmpProcedureName = PbOutputProcedureNameList(I) Then
-            
-            'TxtLISTBOXにコードの表示
-            txtListBox.Text = ""
-    
-            TmpCode = PbOutputProcedureCodeList(I)
-            For J = 1 To UBound(TmpCode, 1)
-                ProcedureCode = ProcedureCode & TmpCode(J) & Chr(10)
-        '        CodeListBox.AddItem TmpCode(I)
-            Next J
-            txtListBox.Text = ProcedureCode
-    
-'            For J = 1 To UBound(TmpCode, 1)
-'                CodeListBox.AddItem TmpCode(J)
-'            Next J
-            
-            'KaisoListBoxに階層構造の表示
-            KaisoListBox.Clear
-            TmpKaisoList = PbOutputKaisoList(I)
-                                                        
-            For J = 1 To UBound(TmpKaisoList, 1)
-                KaisoListBox.AddItem TmpKaisoList(J)
-            Next J
-            
-            'SiyosakiListBoxに使用先プロシージャの表示
-            SiyosakiListBox.Clear
-            TmpSiyosakiProcedureList = PbOutputShiyoSakiProcedureListList(I)
-            If IsEmpty(TmpSiyosakiProcedureList) Then
-                '何もしない
-            Else
-                For J = 1 To UBound(TmpSiyosakiProcedureList, 1)
-                    SiyosakiListBox.AddItem TmpSiyosakiProcedureList(J)
-                Next J
-            End If
-            
-            PbTmpKaisoList = TmpKaisoList
-            
-            Exit For
-        End If
+    For I = 1 To Me.ListViewModule.ListItems.Count
+        Me.ListViewModule.ListItems.Remove (1)
     Next I
 
 End Sub
 
-Private Sub KaisoListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
-        
+Sub プロシージャリストビュー初期化()
+    
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    
-    Dim TmpProcedureName As String
-    
-    TmpProcedureName = KaisoListBox.List(KaisoListBox.ListIndex)
-    TmpProcedureName = 文字区切り(TmpProcedureName, "(", 1)
-    TmpProcedureName = Replace(TmpProcedureName, "　", "")
-    TmpProcedureName = Replace(TmpProcedureName, "┗", "")
-    
-    On Error GoTo ErrorEscape
-    Application.GoTo Reference:=TmpProcedureName
+    For I = 1 To Me.ListViewProcedure.ListItems.Count
+        Me.ListViewProcedure.ListItems.Remove (1)
+    Next I
 
-ErrorEscape:
 End Sub
 
-Private Sub KaisoListBox_Click()
+Sub 使用プロシージャリストビュー初期化()
+    
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim TmpCode
-    Dim TmpProcedureName As String
-    
-    TmpProcedureName = KaisoListBox.List(KaisoListBox.ListIndex)
-    
-    '選択リスト全体表示リストボックスに選択した一行を表示
-    TotemoNagaiListBox.Clear
-    TotemoNagaiListBox.AddItem TmpProcedureName
-    
-    TmpProcedureName = 文字区切り(TmpProcedureName, "(", 1)
-    TmpProcedureName = Replace(TmpProcedureName, "　", "")
-    TmpProcedureName = Replace(TmpProcedureName, "┗", "")
-    
-    TmpCode = 指定プロシージャのコード取得(TmpProcedureName, PbAllInfoList)
-
-    If IsEmpty(TmpCode) Then Exit Sub
-    
-    'コード表示
-    txtListBox.Text = ""
-    Dim ProcedureCode
-    
-    For I = 1 To UBound(TmpCode, 1)
-        ProcedureCode = ProcedureCode & TmpCode(I) & Chr(10)
-'        CodeListBox.AddItem TmpCode(I)
+    For I = 1 To Me.ListViewUseProcedure.ListItems.Count
+        Me.ListViewUseProcedure.ListItems.Remove (1)
     Next I
-    
-    txtListBox.Text = ProcedureCode
-    
 
 End Sub
 
-Private Sub SiyosakiListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    'リストボックスで選択ダブルクリックしたらVBE起動してコードを表示する。
-        
-    Dim TmpProcedureName As String
+Sub コードプロシージャリストビュー初期化()
     
-    TmpProcedureName = SiyosakiListBox.List(SiyosakiListBox.ListIndex)
-    
-    On Error GoTo ErrorEscape
-    Application.GoTo Reference:=TmpProcedureName
-
-ErrorEscape:
-
-End Sub
-
-Private Sub SiyosakiListBox_Click()
-
-    Dim I% '数え上げ用(Integer型)
-    Dim TmpCode
-    Dim TmpProcedureName As String
-    
-    TmpProcedureName = SiyosakiListBox.List(SiyosakiListBox.ListIndex) '←←←←←←←←←←←←←←←←←←←←
-            
-    '選択リスト全体表示リストボックスに選択した一行を表示
-    TotemoNagaiListBox.Clear
-    TotemoNagaiListBox.AddItem TmpProcedureName
-
-    TmpCode = 指定プロシージャのコード取得(TmpProcedureName, PbAllInfoList)
-    
-    If IsEmpty(TmpCode) Then Exit Sub
-
-    'コード表示
-    txtListBox.Text = ""
-    Dim ProcedureCode As String
-    
-    For I = 1 To UBound(TmpCode, 1)
-        ProcedureCode = ProcedureCode & TmpCode(I) & Chr(10)
-'        CodeListBox.AddItem TmpCode(I)
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    For I = 1 To Me.ListViewCode.ListItems.Count
+        Me.ListViewCode.ListItems.Remove (1)
     Next I
-    
-    txtListBox.Text = ProcedureCode
 
 End Sub
+
