@@ -152,8 +152,8 @@ Function モジュールのコード一覧取得(InputModule As VBComponent)
                 End If
                 
                 On Error GoTo 0
-                
-                TmpCode = .Lines(TmpStart, TmpEnd)
+                TmpCode = コードの取得修正(InputModule, TmpStart, TmpEnd)
+'                TmpCode = .Lines(TmpStart, TmpEnd)
             End With
             
             Output.Add TmpProcedureName, TmpCode
@@ -579,3 +579,39 @@ Private Function コードからプロシージャのタイプと使用範囲取得(InputCode, Procedu
 
 End Function
 
+Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeEnd&)
+    
+    '通常取得
+    Dim TmpCode
+    TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeEnd)
+    Dim LastStr$, TmpSplit
+    TmpSplit = Split(TmpCode, vbLf)
+    LastStr = TmpSplit(UBound(TmpSplit))
+    
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim Output$
+    If InStr(1, LastStr, "End") > 0 Then
+        Output = TmpCode
+    Else
+        '最終行が「End ***」でない場合は前後を探索させる
+        For I = -3 To 3
+            TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeEnd + I)
+            TmpSplit = Split(TmpCode, vbLf)
+            LastStr = TmpSplit(UBound(TmpSplit))
+                        
+            If InStr(1, LastStr, "End") > 0 Then
+                Output = TmpCode
+                Exit For
+            End If
+        Next I
+        
+        If Output = "" Then
+            '最終行が見つからなかった場合
+            Stop
+            Output = InputModule.CodeModule.Lines(CodeStart, CodeEnd)
+        End If
+    End If
+    
+    コードの取得修正 = Output
+    
+End Function
