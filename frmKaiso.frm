@@ -639,7 +639,7 @@ Private Sub プロシージャコード表示(ShowProcedure As ClassProcedure)
     Me.txtVBProject.Text = ShowProcedure.VBProjectName
     Me.txtModule.Text = ShowProcedure.ModuleName
     
-    For I = 1 To UBound(TmpCode) - 1
+    For I = 1 To UBound(TmpCode)
         With Me.ListViewCode.ListItems.Add
             .Text = I
             .SubItems(1) = TmpCode(I)

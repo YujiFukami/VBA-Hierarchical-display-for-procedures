@@ -599,8 +599,11 @@ Private Function ƒR[ƒh‚ÌŽæ“¾C³(InputModule As VBComponent, CodeStart&, CodeEn
             TmpSplit = Split(TmpCode, vbLf)
             LastStr = TmpSplit(UBound(TmpSplit))
                         
-            If InStr(1, LastStr, "End") > 0 Then
+            If InStr(1, LastStr, "End Function") > 0 _
+                Or InStr(1, LastStr, "End Sub") > 0 _
+                Or InStr(1, LastStr, "End Property") > 0 Then
                 Output = TmpCode
+                Debug.Print LastStr
                 Exit For
             End If
         Next I
