@@ -603,7 +603,7 @@ Private Function ƒR[ƒh‚ÌŽæ“¾C³(InputModule As VBComponent, CodeStart&, CodeEn
                 Or InStr(1, LastStr, "End Sub") > 0 _
                 Or InStr(1, LastStr, "End Property") > 0 Then
                 Output = TmpCode
-                Debug.Print LastStr
+'                Debug.Print LastStr
                 Exit For
             End If
         Next I
