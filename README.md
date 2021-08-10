@@ -31,7 +31,7 @@ TreeViewコントロールはExcelバージョン,Windows環境で動いたり�
 
 実行環境など報告していただくと感謝感激雨霰。
 
-ちなみに、小生の実行環境は「Windows10 64bit,Excel2019」
+
 
 ③セルに「=Kaiso()」と入力するとプロシージャの一覧、階層化表示のフォームが出現する。
 ![1 KAISO()](https://user-images.githubusercontent.com/73621859/126260383-018720ef-904d-48ed-a82c-41041c497c89.jpg)
