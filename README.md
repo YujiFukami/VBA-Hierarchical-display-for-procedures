@@ -1,6 +1,12 @@
 # VBA-Hierarchical-display-for-proceduresCancel changes
 VBA階層化表示フォーム
 
+# 開発環境
+License: The MIT license
+Copyright (c) 2021 YujiFukami
+開発テスト環境 Excel: Microsoft® Excel® 2019 32bit 
+開発テスト環境 OS: Windows 10 Pro
+
 ### 使い方
 ①Excelの設定でExcel2019の場合「Excelのオプション」→「トラストセンター」→「マクロの設定」で
 
