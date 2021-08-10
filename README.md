@@ -11,12 +11,15 @@ Copyright (c) 2021 YujiFukami
 開発テスト環境 OS: Windows 10 Pro
 
 # 使い方
-①Excelの設定でExcel2019の場合「Excelのオプション」→「トラストセンター」→「マクロの設定」で
+
+## Step1
+Excelの設定でExcel2019の場合「Excelのオプション」→「トラストセンター」→「マクロの設定」で
 
 「VBAプロジェクトオブジェクトモデルへのアクセスを信頼する」にチェックを入れておく
 ![Excelの設定](https://user-images.githubusercontent.com/73621859/126287884-57db4a75-3f34-4b35-b23d-f705067a1869.jpg)
 
-②「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
+## Step2
+「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
 また、下記ライブラリを追加で参照すること。
 
 「Microsoft Forms 2.0 Object Library」→ListView,TreeViewを動かすためっぽい
@@ -32,8 +35,8 @@ TreeViewコントロールはExcelバージョン,Windows環境で動いたり�
 実行環境など報告していただくと感謝感激雨霰。
 
 
-
-③セルに「=Kaiso()」と入力するとプロシージャの一覧、階層化表示のフォームが出現する。
+## Step3
+セルに「=Kaiso()」と入力するとプロシージャの一覧、階層化表示のフォームが出現する。
 ![1 KAISO()](https://user-images.githubusercontent.com/73621859/126260383-018720ef-904d-48ed-a82c-41041c497c89.jpg)
 
 # 階層化表示フォームの画面および使い方説明
