@@ -168,7 +168,7 @@ Function コードを検索用に変更(InputCode) As Object
     
     Dim CodeList, TmpStr$
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
-    CodeList = Split(InputCode, vbLf)
+    CodeList = Split(InputCode, vbCrLf)
     CodeList = Application.Transpose(CodeList)
     CodeList = Application.Transpose(CodeList)
     N = UBound(CodeList, 1)
@@ -585,7 +585,7 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeEn
     Dim TmpCode
     TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeEnd)
     Dim LastStr$, TmpSplit
-    TmpSplit = Split(TmpCode, vbLf)
+    TmpSplit = Split(TmpCode, vbCrLf)
     LastStr = TmpSplit(UBound(TmpSplit))
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -596,7 +596,7 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeEn
         '最終行が「End ***」でない場合は前後を探索させる
         For I = -3 To 3
             TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeEnd + I)
-            TmpSplit = Split(TmpCode, vbLf)
+            TmpSplit = Split(TmpCode, vbCrLf)
             LastStr = TmpSplit(UBound(TmpSplit))
                         
             If InStr(1, LastStr, "End Function") > 0 _

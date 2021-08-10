@@ -634,7 +634,7 @@ Private Sub プロシージャコード表示(ShowProcedure As ClassProcedure)
         Me.ListViewCode.ListItems.Remove (1)
     Next I
     
-    TmpCode = Split(ShowProcedure.Code, vbLf)
+    TmpCode = Split(ShowProcedure.Code, vbCrLf)
     TmpCode = Application.Transpose(Application.Transpose(TmpCode))
         
     Me.txtVBProject.Text = ShowProcedure.VBProjectName
@@ -661,7 +661,7 @@ Private Sub コードのコピー()
     If Not PriShowProcedure Is Nothing Then
         Call ClipboardCopy(PriShowProcedure.Code, False)
         
-        MsgBox ("「" & PriShowProcedure.Name & "」" & vbLf & _
+        MsgBox ("「" & PriShowProcedure.Name & "」" & vbCrLf & _
                "のコードをクリップボードにコピーしました")
         
     End If
@@ -813,7 +813,7 @@ Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIruNaraTrue As Bo
             If I = 1 Then
                 Output = InputClipText(I)
             Else
-                Output = Output & vbLf & InputClipText(I)
+                Output = Output & vbCrLf & InputClipText(I)
             End If
             
         Next I
@@ -856,7 +856,7 @@ Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIruNaraTrue As Bo
 
     '格納したテキスト変数をメッセージ表示
     If MessageIruNaraTrue Then
-        MsgBox ("「" & Output & "」" & vbLf & _
+        MsgBox ("「" & Output & "」" & vbCrLf & _
                 "をクリップボードにコピーしました。")
     End If
     
