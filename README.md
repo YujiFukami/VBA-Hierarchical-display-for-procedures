@@ -1,7 +1,4 @@
-# VBA-Hierarchical-display-for-proceduresCancel changes
-VBA階層化表示フォーム
-
-# 開発環境
+# VBA-Hierarchical-display-for-procedures
 License: The MIT license
 
 Copyright (c) 2021 YujiFukami
