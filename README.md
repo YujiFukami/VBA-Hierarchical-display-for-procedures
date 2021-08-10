@@ -1,11 +1,11 @@
 # VBA-Hierarchical-display-for-procedures
-License: The MIT license
+- License: The MIT license
 
-Copyright (c) 2021 YujiFukami
+- Copyright (c) 2021 YujiFukami
 
-開発テスト環境 Excel: Microsoft® Excel® 2019 32bit 
+- 開発テスト環境 Excel: Microsoft® Excel® 2019 32bit 
 
-開発テスト環境 OS: Windows 10 Pro
+- 開発テスト環境 OS: Windows 10 Pro
 
 # 使い方
 
@@ -19,11 +19,11 @@ Excelの設定でExcel2019の場合「Excelのオプション」→「トラス�
 「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
 また、下記ライブラリを追加で参照すること。
 
-「Microsoft Forms 2.0 Object Library」→ListView,TreeViewを動かすためっぽい
+- 「Microsoft Forms 2.0 Object Library」→ListView,TreeViewを動かすためっぽい
 
-「Microsoft Windows Common Controls 6.0(SP6)」→ListView,TreeViewを動かすためっぽい
+- 「Microsoft Windows Common Controls 6.0(SP6)」→ListView,TreeViewを動かすためっぽい
 
-「Microsoft Visual Basic for Applications Extensibility 5.3」→VBAコードをVBAで参照するため
+- 「Microsoft Visual Basic for Applications Extensibility 5.3」→VBAコードをVBAで参照するため
 
 ![階層化フォーム 参照ライブラリ](https://user-images.githubusercontent.com/73621859/128787617-59d52e7e-0439-4f6c-9877-4bfe11e8d745.jpg)
 
