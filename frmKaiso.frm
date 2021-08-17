@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmKaiso 
    Caption         =   "階層化表示フォーム"
-   ClientHeight    =   9072
-   ClientLeft      =   36
-   ClientTop       =   408
-   ClientWidth     =   15396
+   ClientHeight    =   9072.001
+   ClientLeft      =   30
+   ClientTop       =   405
+   ClientWidth     =   15405
    OleObjectBlob   =   "frmKaiso.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'オーナー フォームの中央
@@ -14,6 +14,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 '色付け用の列挙型(モジュール)
 Private Enum ModuleColor
@@ -298,6 +299,28 @@ Private Sub ListViewProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.Colu
     
 End Sub
 
+Private Sub ListViewProcedure_DblClick()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+       
+    If UBound(PriProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriProcedureList, 1)
+        Select Case Me.ListViewProcedure.SelectedItem
+            Case PriProcedureList(I).Name
+                
+                Set PriShowProcedure = PriProcedureList(I)
+                
+                Call 指定プロシージャVBE画面表示(PriShowProcedure)
+                                
+        End Select
+    Next I
+    
+
+End Sub
+
 Private Sub ListViewUseProcedure_Click()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -335,6 +358,26 @@ Private Sub ListViewUseProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.C
     
 End Sub
 
+Private Sub ListViewUseProcedure_DblClick()
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+       
+    If UBound(PriProcedureList, 1) <= 0 Then
+        Exit Sub
+    End If
+    
+    For I = 1 To UBound(PriUseProcedureList, 1)
+        Select Case Me.ListViewUseProcedure.SelectedItem
+            Case PriUseProcedureList(I).Name
+                
+                Set PriShowProcedure = PriUseProcedureList(I)
+                
+                Call 指定プロシージャVBE画面表示(PriShowProcedure)
+                                
+        End Select
+    Next I
+
+End Sub
 
 Private Sub TreeProcedure_NodeClick(ByVal Node As MSComctlLib.Node)
     
@@ -436,40 +479,6 @@ Private Sub UserForm_Initialize()
     
 End Sub
 
-Private Sub listProcedure_Click()
-
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim TmpModuleName As String
-    Dim TmpProcedureList
-    Dim TmpProcedureKosu As Integer
-    
-    Me.listKaiso.Clear
-    Me.txtCode.Text = ""
-    
-    For I = 1 To UBound(PriProcedureList, 1)
-        Select Case Split(Me.listProcedure.List(Me.listProcedure.ListIndex), "(")(0) 'プロシージャ名の部分だけ抜き出す
-            Case PriProcedureList(I).Name
-                
-                Me.txtVBProject.Text = PriProcedureList(I).VBProjectName
-                Me.txtModule.Text = PriProcedureList(I).ModuleName
-                Me.txtCode.Text = PriProcedureList(I).Code
-                
-                If PriProcedureList(I).UseProcedure.Count <> 0 Then
-                    ReDim PriUseProcedureList(1 To PriProcedureList(I).UseProcedure.Count)
-                    
-                    For J = 1 To UBound(PriUseProcedureList, 1)
-                        
-                        Set PriUseProcedureList(J) = PriProcedureList(I).UseProcedure(J)
-                        Me.listUseProcedure.AddItem PriUseProcedureList(J).Name
-                    
-                    Next J
-                    
-                    Exit For
-                End If
-                
-        End Select
-    Next I
-End Sub
 
 Private Sub listUseProcedure_Click()
 
@@ -493,22 +502,6 @@ Private Sub listUseProcedure_Click()
 
 End Sub
 
-Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    'サイズ調整
-    Application.WindowState = xlMaximized
-    Dim TakasaWariai As Double
-    TakasaWariai = 0.9
-    
-    Me.Zoom = 100 * (Application.Height) / Me.Height
-    Me.Height = (Application.Height * TakasaWariai)
-    Me.Width = (Application.Width * TakasaWariai)
-    Me.Zoom = 100 * (Application.Height) / Me.Height
-    Me.Height = (Application.Height * TakasaWariai)
-    Me.Width = (Application.Width * TakasaWariai)
-    Me.Top = 20
-    Me.Left = 20
-
-End Sub
 
 Private Sub Cmd検索_Click()
     Call コード検索実行(Me.txtKensaku.Text)
@@ -647,7 +640,7 @@ Private Sub プロシージャコード表示(ShowProcedure As ClassProcedure)
     Me.txtVBProject.Text = ShowProcedure.VBProjectName
     Me.txtModule.Text = ShowProcedure.ModuleName
     
-    For I = 1 To UBound(TmpCode) - 1
+    For I = 1 To UBound(TmpCode)
         With Me.ListViewCode.ListItems.Add
             .Text = I
             .SubItems(1) = TmpCode(I)
@@ -698,27 +691,30 @@ Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure
     Call 再帰型ツリービューにプロシージャの階層表示(ShowProcedure, ShowProcedure.Name)
     
 End Sub
+
 Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure, ParentKey$)
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     Dim TmpKey$
     Dim TmpProcedure As ClassProcedure
+    Dim DummyNum%
     With Me.TreeProcedure
         
         If ShowProcedure.UseProcedure.Count > 0 Then
             For I = 1 To ShowProcedure.UseProcedure.Count
                 Set TmpProcedure = ShowProcedure.UseProcedure(I)
-                TmpKey = ParentKey & TmpProcedure.Name
+                TmpKey = ParentKey & "_" & TmpProcedure.Name & .Nodes.Count
+                
                 .Nodes.Add Relative:=ParentKey, _
                            Relationship:=tvwChild, Key:=TmpKey, _
                            Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
                 
                 ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
                 Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
-                .Nodes(ParentKey & TmpProcedure.Name).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
+                .Nodes(TmpKey).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
                 
                 Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey)
-                .Nodes(ParentKey & TmpProcedure.Name).Expanded = True
+                .Nodes(TmpKey).Expanded = True
                 
                 
             Next I
@@ -727,7 +723,7 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
     
 End Sub
 
-Sub モジュールリストビュー初期化()
+Private Sub モジュールリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewModule.ListItems.Count
@@ -736,7 +732,7 @@ Sub モジュールリストビュー初期化()
 
 End Sub
 
-Sub プロシージャリストビュー初期化()
+Private Sub プロシージャリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewProcedure.ListItems.Count
@@ -745,7 +741,7 @@ Sub プロシージャリストビュー初期化()
 
 End Sub
 
-Sub 使用プロシージャリストビュー初期化()
+Private Sub 使用プロシージャリストビュー初期化()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewUseProcedure.ListItems.Count
@@ -754,12 +750,115 @@ Sub 使用プロシージャリストビュー初期化()
 
 End Sub
 
-Sub コードプロシージャリストビュー初期化()
-    
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+Private Sub コードプロシージャリストビュー初期化()
+        Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     For I = 1 To Me.ListViewCode.ListItems.Count
         Me.ListViewCode.ListItems.Remove (1)
     Next I
 
+End Sub
+
+Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
+'https://www.relief.jp/docs/excel-vba-application-goto-reference.html
+    Dim ReferenceStr$
+    With ShowProcedure
+        ReferenceStr = .BookName & "!" & .ModuleName & "." & .Name
+    End With
+    
+    On Error Resume Next
+    Application.Goto Reference:=ReferenceStr
+    On Error GoTo 0
+
+End Sub
+
+Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIruNaraTrue As Boolean = False)
+'入力テキストをクリップボードに格納
+'配列ならば列方向をTabわけ、行方向を改行する。
+'20210719作成
+    
+    '入力した引数が配列か、配列の場合は1次元配列か、2次元配列か判定
+    Dim HairetuHantei%
+    Dim Jigen1%, Jigen2%
+    If IsArray(InputClipText) = False Then
+        '入力引数が配列でない
+        HairetuHantei = 0
+    Else
+        On Error Resume Next
+        Jigen2 = UBound(InputClipText, 2)
+        On Error GoTo 0
+        
+        If Jigen2 = 0 Then
+            HairetuHantei = 1
+        Else
+            HairetuHantei = 2
+        End If
+    End If
+    
+    'クリップボードに格納用のテキスト変数を作成
+    Dim Output$
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    
+    If HairetuHantei = 0 Then '配列でない場合
+        Output = InputClipText
+    ElseIf HairetuHantei = 1 Then '1次元配列の場合
+    
+        If LBound(InputClipText, 1) <> 1 Then '最初の要素番号が1出ない場合は最初の要素番号を1にする
+            InputClipText = Application.Transpose(Application.Transpose(InputClipText))
+        End If
+        
+        N = UBound(InputClipText, 1)
+        
+        Output = ""
+        For I = 1 To N
+            If I = 1 Then
+                Output = InputClipText(I)
+            Else
+                Output = Output & vbLf & InputClipText(I)
+            End If
+            
+        Next I
+    ElseIf HairetuHantei = 2 Then '2次元配列の場合
+        
+        If LBound(InputClipText, 1) <> 1 Or LBound(InputClipText, 2) <> 1 Then
+            InputClipText = Application.Transpose(Application.Transpose(InputClipText))
+        End If
+        
+        N = UBound(InputClipText, 1)
+        M = UBound(InputClipText, 2)
+        
+        Output = ""
+        
+        For I = 1 To N
+            For J = 1 To M
+                If J < M Then
+                    Output = Output & InputClipText(I, J) & Chr(9)
+                Else
+                    Output = Output & InputClipText(I, J)
+                End If
+                
+            Next J
+            
+            If I < N Then
+                Output = Output & Chr(10)
+            End If
+        Next I
+    End If
+    
+    
+    'クリップボードに格納'参考 https://www.ka-net.org/blog/?p=7537
+    With CreateObject("Forms.TextBox.1")
+        .MultiLine = True
+        .Text = Output
+        .SelStart = 0
+        .SelLength = .TextLength
+        .Copy
+    End With
+
+    '格納したテキスト変数をメッセージ表示
+    If MessageIruNaraTrue Then
+        MsgBox ("「" & Output & "」" & vbLf & _
+                "をクリップボードにコピーしました。")
+    End If
+    
 End Sub
 

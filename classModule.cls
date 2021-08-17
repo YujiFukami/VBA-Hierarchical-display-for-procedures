@@ -13,6 +13,7 @@ Public Name$
 Public Procedures As Collection
 Public VBProjectName$
 Public ModuleType$ 'モジュールのタイプ、標準モジュール、ユーザーフォーム、クラスモジュールなど
+Public BookName$
 
 '名前
 Property Get MyName()
@@ -54,4 +55,14 @@ End Property
 Property Let MyModuleType(InputModuleType)
     ModuleType = InputModuleType
 End Property
+
+'ブックの名前
+Property Get MyBookName()
+    MyBookName = BookName
+End Property
+
+Property Let MyBookName(InputBookName)
+    BookName = InputBookName
+End Property
+
 

@@ -17,6 +17,7 @@ Public ModuleName$
 Public VBProjectName$
 Public RangeOfUse$ 'プロシージャの使用可能範囲(PublicかPrivateか）
 Public ProcedureType$ 'プロシージャのタイプ（Sub,Functionなど）
+Public BookName$
 
 '初期化時
 Private Sub Class_Initialize()
@@ -95,4 +96,14 @@ End Property
 Property Let MyProcedureType(InputProcedureType)
     ProcedureType = InputProcedureType
 End Property
+
+'ブックの名前
+Property Get MyBookName()
+    MyBookName = BookName
+End Property
+
+Property Let MyBookName(InputBookName)
+    BookName = InputBookName
+End Property
+
 

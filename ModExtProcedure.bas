@@ -28,6 +28,7 @@ Function フォーム用VBProject作成()
         Set TmpVBProject = VBProjectList(I)
         Set TmpClassVBProject = New classVBProject
         TmpClassVBProject.MyName = TmpVBProject.Name
+        TmpClassVBProject.MyBookName = Dir(TmpVBProject.FileName)
         
         For J = 1 To TmpVBProject.VBComponents.Count
             Set TmpClassModule = New classModule
@@ -36,6 +37,7 @@ Function フォーム用VBProject作成()
             TmpClassModule.Name = TmpModule.Name
             TmpClassModule.VBProjectName = TmpClassVBProject.Name
             TmpClassModule.ModuleType = モジュール種類判定(TmpModule.Type)
+            TmpClassModule.BookName = TmpClassVBProject.BookName
             
             TmpProcedureNameList = モジュールのプロシージャ名一覧取得(TmpModule)
             Set TmpCodeDict = モジュールのコード一覧取得(TmpModule)
@@ -51,6 +53,7 @@ Function フォーム用VBProject作成()
                     Set TmpClassProcedure.KensakuCode = コードを検索用に変更(TmpCodeDict(TmpProcedureName))
                     TmpClassProcedure.VBProjectName = TmpClassVBProject.Name
                     TmpClassProcedure.ModuleName = TmpClassModule.Name
+                    TmpClassProcedure.BookName = TmpClassModule.BookName
                     TmpClassModule.AddProcedure TmpClassProcedure
                 Next II
             End If
@@ -133,25 +136,27 @@ Function モジュールのコード一覧取得(InputModule As VBComponent)
         Set Output = CreateObject("Scripting.Dictionary")
         For I = 1 To N
             TmpProcedureName = ProcedureList(I)
-            With InputModule.CodeModule
-                On Error Resume Next
-                TmpStart = 0
-                TmpEnd = 0
-                TmpStart = .ProcBodyLine(TmpProcedureName, 0)
-                TmpEnd = .ProcCountLines(TmpProcedureName, 0)
-                      
-                If TmpStart = 0 Then 'クラスモジュールのコード取得用
-                    TmpStart = .ProcBodyLine(TmpProcedureName, vbext_pk_Get)
-                    TmpEnd = .ProcCountLines(TmpProcedureName, vbext_pk_Let)
-                    If TmpEnd = 0 Then
-                        TmpEnd = .ProcCountLines(TmpProcedureName, vbext_pk_Get)
-                    End If
-                End If
-                
-                On Error GoTo 0
-                
-                TmpCode = .Lines(TmpStart, TmpEnd)
-            End With
+            
+            TmpCode = コードの取得最強版(InputModule, TmpProcedureName)
+'            With InputModule.CodeModule
+'                On Error Resume Next
+'                TmpStart = 0
+'                TmpEnd = 0
+'                TmpStart = .ProcBodyLine(TmpProcedureName, 0)
+'                TmpEnd = .ProcCountLines(TmpProcedureName, 0)
+'
+'                If TmpStart = 0 Then 'クラスモジュールのコード取得用
+'                    TmpStart = .ProcBodyLine(TmpProcedureName, vbext_pk_Get)
+'                    TmpEnd = .ProcCountLines(TmpProcedureName, vbext_pk_Let)
+'                    If TmpEnd = 0 Then
+'                        TmpEnd = .ProcCountLines(TmpProcedureName, vbext_pk_Get)
+'                    End If
+'                End If
+'
+'                On Error GoTo 0
+'                TmpCode = コードの取得修正(InputModule, TmpStart, TmpEnd)
+''                TmpCode = .Lines(TmpStart, TmpEnd)
+'            End With
             
             Output.Add TmpProcedureName, TmpCode
         Next I
@@ -171,7 +176,7 @@ Function コードを検索用に変更(InputCode) As Object
     N = UBound(CodeList, 1)
     
     Dim BunkatuStrList, HenkanStr$, TmpBunkatu
-    BunkatuStrList = Array(" ", ":", "_", ",", """", "(", ")")
+    BunkatuStrList = Array(" ", ":", ",", """", "(", ")")
     BunkatuStrList = Application.Transpose(Application.Transpose(BunkatuStrList))
     HenkanStr = Chr(13)
     
@@ -573,5 +578,84 @@ Private Function コードからプロシージャのタイプと使用範囲取得(InputCode, Procedu
     Output(2) = ProcedureType
     
     コードからプロシージャのタイプと使用範囲取得 = Output
+
+End Function
+
+Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCount&)
+
+    '通常取得
+    Dim TmpCode
+    TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeCount)
+    Dim LastStr$, TmpSplit, TmpSplit2
+    TmpSplit = Split(TmpCode, vbLf)
+    LastStr = TmpSplit(UBound(TmpSplit))
+
+    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
+    Dim Output$
+
+    '最終行を後ろから探索する
+    For I = UBound(TmpSplit) + 3 To 0 Step -1
+        TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
+        TmpSplit2 = Split(TmpCode, vbLf)
+        LastStr = TmpSplit2(UBound(TmpSplit2))
+        
+        LastStr = Trim(LastStr) '先頭のスペースを除去
+        If InStr(1, LastStr, "'") > 0 Then
+            LastStr = Split(LastStr, "'")(0) 'コメントを除去
+        End If
+        
+        If InStr(1, LastStr, "End Function") > 0 _
+            Or InStr(1, LastStr, "End Sub") > 0 _
+            Or InStr(1, LastStr, "End Property") > 0 Then
+            Output = TmpCode
+            Debug.Print LastStr
+            Exit For
+        End If
+    Next I
+
+    If Output = "" Then
+        'それでも最終行が見つからなかった場合
+        Output = InputModule.CodeModule.Lines(CodeStart, CodeCount)
+        Debug.Print Output '確認用
+        Stop
+    End If
+
+    コードの取得修正 = Output
+
+End Function
+
+Private Function コードの取得最強版(InputModule As VBComponent, ProcedureName$)
+    
+    Dim Output$
+    Dim TmpStart&, TmpCount&, TmpProcKind%
+    
+    'プロシージャの開始位置取得
+    '参考：https://docs.microsoft.com/ja-jp/office/vba/api/access.module.procbodyline
+    TmpStart = -1
+    'プロシージャがSub/Functionプロシージャか、Property Get/Let/Setプロシージャかまだ不明なので、手あたり次第探る。
+    On Error Resume Next
+    With InputModule.CodeModule
+        TmpStart = .ProcBodyLine(ProcedureName, vbext_pk_Proc) 'Sub/Functionプロシージャ
+        TmpProcKind = vbext_pk_Proc
+        If TmpStart = -1 Then
+            TmpStart = .ProcBodyLine(ProcedureName, vbext_pk_Get) 'Property Getプロシージャ
+            TmpProcKind = vbext_pk_Get
+            If TmpStart = -1 Then
+                TmpStart = .ProcBodyLine(ProcedureName, vbext_pk_Let) 'Property Letプロシージャ
+                TmpProcKind = vbext_pk_Let
+                If TmpStart = -1 Then
+                    TmpStart = .ProcBodyLine(ProcedureName, vbext_pk_Set) 'Property Setプロシージャ
+                    TmpProcKind = vbext_pk_Set
+                End If
+            End If
+        End If
+        TmpCount = .ProcCountLines(ProcedureName, TmpProcKind)
+        
+        Output = コードの取得修正(InputModule, TmpStart, TmpCount)
+'        Output = .Lines(TmpStart, TmpCount)
+    End With
+    On Error GoTo 0
+    
+    コードの取得最強版 = Output
 
 End Function
