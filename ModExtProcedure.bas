@@ -615,8 +615,9 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
 
     If Output = "" Then
         'それでも最終行が見つからなかった場合
-        Stop
         Output = InputModule.CodeModule.Lines(CodeStart, CodeCount)
+        Debug.Print Output '確認用
+        Stop
     End If
 
     コードの取得修正 = Output
