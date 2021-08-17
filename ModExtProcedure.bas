@@ -176,7 +176,7 @@ Function コードを検索用に変更(InputCode) As Object
     N = UBound(CodeList, 1)
     
     Dim BunkatuStrList, HenkanStr$, TmpBunkatu
-    BunkatuStrList = Array(" ", ":", "_", ",", """", "(", ")")
+    BunkatuStrList = Array(" ", ":", ",", """", "(", ")")
     BunkatuStrList = Application.Transpose(Application.Transpose(BunkatuStrList))
     HenkanStr = Chr(13)
     
