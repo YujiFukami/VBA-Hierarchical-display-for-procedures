@@ -654,7 +654,7 @@ Private Function コードの取得最強版(InputModule As VBComponent, ProcedureName$)
         Output = コードの取得修正(InputModule, TmpStart, TmpCount)
 '        Output = .Lines(TmpStart, TmpCount)
     End With
-    
+    On Error GoTo 0
     
     コードの取得最強版 = Output
 

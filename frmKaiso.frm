@@ -765,7 +765,7 @@ Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
     End With
     
     On Error Resume Next
-    Application.GoTo Reference:=ReferenceStr
+    Application.Goto Reference:=ReferenceStr
     On Error GoTo 0
 
 End Sub
