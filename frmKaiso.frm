@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmKaiso 
    Caption         =   "階層化表示フォーム"
-   ClientHeight    =   9072.001
-   ClientLeft      =   30
-   ClientTop       =   405
-   ClientWidth     =   15405
+   ClientHeight    =   9072
+   ClientLeft      =   36
+   ClientTop       =   408
+   ClientWidth     =   15396
    OleObjectBlob   =   "frmKaiso.frx":0000
    ShowModal       =   0   'False
    StartUpPosition =   1  'オーナー フォームの中央
@@ -14,7 +14,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 Option Explicit
 '色付け用の列挙型(モジュール)
 Private Enum ModuleColor
@@ -766,7 +765,7 @@ Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
     End With
     
     On Error Resume Next
-    Application.Goto Reference:=ReferenceStr
+    Application.GoTo Reference:=ReferenceStr
     On Error GoTo 0
 
 End Sub
