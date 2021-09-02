@@ -717,11 +717,18 @@ Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure
     Me.txtVBProject.Text = ShowProcedure.VBProjectName
     Me.txtModule.Text = ShowProcedure.ModuleName
     
-    Call 再帰型ツリービューにプロシージャの階層表示(ShowProcedure, ShowProcedure.Name)
+    Call 再帰型ツリービューにプロシージャの階層表示(ShowProcedure, ShowProcedure.Name, 0)
     
 End Sub
 
-Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure, ParentKey$)
+Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure, ParentKey$, ByVal Depth&)
+        
+    '再帰関数の深さ（ループ）が一定以上超えないようにする。
+    Depth = Depth + 1
+    If Depth > 15 Then
+        Debug.Print "規定数の階層を超えました", ShowProcedure.Name
+        Exit Sub
+    End If
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     Dim TmpKey$
@@ -732,24 +739,19 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
         If ShowProcedure.UseProcedure.Count > 0 Then
             For I = 1 To ShowProcedure.UseProcedure.Count
                 Set TmpProcedure = ShowProcedure.UseProcedure(I)
+        
+                TmpKey = ParentKey & "_" & TmpProcedure.Name & .Nodes.Count
                 
-                If Len(ParentKey) > 100 Then
-'                    Stop
-                Else
-                    
-                    TmpKey = ParentKey & "_" & TmpProcedure.Name & .Nodes.Count
-                    
-                    .Nodes.Add Relative:=ParentKey, _
-                               Relationship:=tvwChild, Key:=TmpKey, _
-                               Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
-                    
-                    ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
-                    Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
-                    .Nodes(TmpKey).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
-                    
-                    Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey)
-                    .Nodes(TmpKey).Expanded = True
-                End If
+                .Nodes.Add Relative:=ParentKey, _
+                           Relationship:=tvwChild, Key:=TmpKey, _
+                           Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
+                
+                ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
+                Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
+                .Nodes(TmpKey).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
+                
+                Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey, Depth)
+                .Nodes(TmpKey).Expanded = True
                 
                 
             Next I

@@ -31,6 +31,7 @@ Function フォーム用VBProject作成()
         TmpClassVBProject.MyBookName = Dir(TmpVBProject.FileName)
         
         For J = 1 To TmpVBProject.VBComponents.Count
+'            If I = 2 And J = 25 Then Stop
             Set TmpClassModule = New classModule
             Set TmpModule = TmpVBProject.VBComponents(J)
             
@@ -48,6 +49,7 @@ Function フォーム用VBProject作成()
                 TmpProcedureNameList = TmpCodeDict.Keys
                 TmpProcedureNameList = Application.Transpose(Application.Transpose(TmpProcedureNameList))
             End If
+            
             
             If IsEmpty(TmpProcedureNameList) = False Then
                 For II = 1 To UBound(TmpProcedureNameList)
@@ -491,10 +493,15 @@ Function 外部参照プロシージャリスト作成(VBProjectList() As classVBProject)
     
 End Function
 
-Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureList() As ClassProcedure, Depth&)
+Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureList() As ClassProcedure, ByVal Depth&)
     
     '再帰関数の深さ（ループ）が一定以上超えないようにする。
-    If Depth > 10 Then Exit Sub
+    Depth = Depth + 1
+    If Depth > 15 Then
+        Debug.Print "外部参照プロシージャ探索で、規定数の階層を超えました。"
+        Debug.Print ClassProcedure.Name
+        Exit Sub
+    End If
     
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
     Dim TmpUseProcedure As ClassProcedure
@@ -509,7 +516,7 @@ Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As C
             Set TmpUseProcedure = ClassProcedure.UseProcedure(I)
             
             '再帰(使用プロシージャ内の外部参照を探る)
-            Call プロシージャ内の外部参照プロシージャ取得(VBProjectName, TmpUseProcedure, ExtProcedureList, Depth + 1)
+            Call プロシージャ内の外部参照プロシージャ取得(VBProjectName, TmpUseProcedure, ExtProcedureList, Depth)
             
             If TmpUseProcedure.VBProjectName <> VBProjectName Then 'VBProject名が異なれば外部参照
                 
@@ -607,7 +614,7 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
     Dim Output$
 
     'コードのスタート位置から最終行を探索するようにする。
-    For I = 2 To UBound(TmpSplit) + 3
+    For I = 2 To UBound(TmpSplit) + 100
         TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
         TmpSplit2 = Split(TmpCode, vbLf)
         LastStr = TmpSplit2(UBound(TmpSplit2))
@@ -621,30 +628,10 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
             Or InStr(1, LastStr, "End Sub") > 0 _
             Or InStr(1, LastStr, "End Property") > 0 Then
             Output = TmpCode
-            Debug.Print LastStr
+'            Debug.Print LastStr
             Exit For
         End If
     Next I
-
-'    '最終行を後ろから探索する
-'    For I = UBound(TmpSplit) + 3 To 0 Step -1
-'        TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
-'        TmpSplit2 = Split(TmpCode, vbLf)
-'        LastStr = TmpSplit2(UBound(TmpSplit2))
-'
-'        LastStr = Trim(LastStr) '先頭のスペースを除去
-'        If InStr(1, LastStr, "'") > 0 Then
-'            LastStr = Split(LastStr, "'")(0) 'コメントを除去
-'        End If
-'
-'        If InStr(1, LastStr, "End Function") > 0 _
-'            Or InStr(1, LastStr, "End Sub") > 0 _
-'            Or InStr(1, LastStr, "End Property") > 0 Then
-'            Output = TmpCode
-'            Debug.Print LastStr
-'            Exit For
-'        End If
-'    Next I
 
     If Output = "" Then
         'それでも最終行が見つからなかった場合
@@ -657,50 +644,6 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
 
 End Function
 
-
-Private Function コードの取得修正プロパティ用(InputModule As VBComponent, CodeStart&, CodeCount&)
-    'プロパティはコードのスタート位置から最終行を探索するようにする。
-    
-    '通常取得
-    Dim TmpCode
-    TmpCode = InputModule.CodeModule.Lines(CodeStart, CodeCount)
-    Dim LastStr$, TmpSplit, TmpSplit2
-    TmpSplit = Split(TmpCode, vbLf)
-    LastStr = TmpSplit(UBound(TmpSplit))
-
-    Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-    Dim Output$
-
-    'コードのスタート位置から最終行を探索するようにする。
-    For I = 2 To UBound(TmpSplit) + 3
-        TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
-        TmpSplit2 = Split(TmpCode, vbLf)
-        LastStr = TmpSplit2(UBound(TmpSplit2))
-        
-        LastStr = Trim(LastStr) '先頭のスペースを除去
-        If InStr(1, LastStr, "'") > 0 Then
-            LastStr = Split(LastStr, "'")(0) 'コメントを除去
-        End If
-        
-        If InStr(1, LastStr, "End Function") > 0 _
-            Or InStr(1, LastStr, "End Sub") > 0 _
-            Or InStr(1, LastStr, "End Property") > 0 Then
-            Output = TmpCode
-            Debug.Print LastStr
-            Exit For
-        End If
-    Next I
-
-    If Output = "" Then
-        'それでも最終行が見つからなかった場合
-        Output = InputModule.CodeModule.Lines(CodeStart, CodeCount)
-        Debug.Print Output '確認用
-        Stop
-    End If
-
-    コードの取得修正プロパティ用 = Output
-
-End Function
 
 Private Function コードの取得最強版(InputModule As VBComponent, ProcedureName$)
     
@@ -821,22 +764,23 @@ Private Function コードの取得最強版プロパティ専用(InputModule As VBComponent, Pr
         TmpStart = InputModule.CodeModule.ProcBodyLine(ProcedureName, vbext_pk_Get)
         TmpCount = InputModule.CodeModule.ProcCountLines(ProcedureName, vbext_pk_Get)
         Output(K, 1) = "(Get)" & ProcedureName
-        Output(K, 2) = コードの取得修正プロパティ用(InputModule, TmpStart, TmpCount)
+        Output(K, 2) = コードの取得修正(InputModule, TmpStart, TmpCount)
     End If
     If HanteiLet Then
         K = K + 1
         TmpStart = InputModule.CodeModule.ProcBodyLine(ProcedureName, vbext_pk_Let)
         TmpCount = InputModule.CodeModule.ProcCountLines(ProcedureName, vbext_pk_Let)
         Output(K, 1) = "(Let)" & ProcedureName
-        Output(K, 2) = コードの取得修正プロパティ用(InputModule, TmpStart, TmpCount)
+        Output(K, 2) = コードの取得修正(InputModule, TmpStart, TmpCount)
     End If
     If HanteiSet Then
         K = K + 1
         TmpStart = InputModule.CodeModule.ProcBodyLine(ProcedureName, vbext_pk_Set)
         TmpCount = InputModule.CodeModule.ProcCountLines(ProcedureName, vbext_pk_Set)
         Output(K, 1) = "(Set)" & ProcedureName
-        Output(K, 2) = コードの取得修正プロパティ用(InputModule, TmpStart, TmpCount)
+        Output(K, 2) = コードの取得修正(InputModule, TmpStart, TmpCount)
     End If
+    
     
     コードの取得最強版プロパティ専用 = Output
 
