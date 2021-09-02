@@ -480,7 +480,7 @@ Function 外部参照プロシージャリスト作成(VBProjectList() As classVBProject)
             Set TmpClassModule = TmpClassVBProject.Modules(J)
             For II = 1 To TmpClassModule.Procedures.Count
                 Set TmpClassProcedure = TmpClassModule.Procedures(II)
-                Call プロシージャ内の外部参照プロシージャ取得(TmpVBProjectName, TmpClassProcedure, TmpExtProcedureList)
+                Call プロシージャ内の外部参照プロシージャ取得(TmpVBProjectName, TmpClassProcedure, TmpExtProcedureList, 0)
             Next II
         Next J
         
@@ -491,7 +491,10 @@ Function 外部参照プロシージャリスト作成(VBProjectList() As classVBProject)
     
 End Function
 
-Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureList() As ClassProcedure)
+Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureList() As ClassProcedure, Depth&)
+    
+    '再帰関数の深さ（ループ）が一定以上超えないようにする。
+    If Depth > 10 Then Exit Sub
     
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
     Dim TmpUseProcedure As ClassProcedure
@@ -506,7 +509,7 @@ Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As C
             Set TmpUseProcedure = ClassProcedure.UseProcedure(I)
             
             '再帰(使用プロシージャ内の外部参照を探る)
-            Call プロシージャ内の外部参照プロシージャ取得(VBProjectName, TmpUseProcedure, ExtProcedureList)
+            Call プロシージャ内の外部参照プロシージャ取得(VBProjectName, TmpUseProcedure, ExtProcedureList, Depth + 1)
             
             If TmpUseProcedure.VBProjectName <> VBProjectName Then 'VBProject名が異なれば外部参照
                 
@@ -603,8 +606,8 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     Dim Output$
 
-    '最終行を後ろから探索する
-    For I = UBound(TmpSplit) + 3 To 0 Step -1
+    'コードのスタート位置から最終行を探索するようにする。
+    For I = 2 To UBound(TmpSplit) + 3
         TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
         TmpSplit2 = Split(TmpCode, vbLf)
         LastStr = TmpSplit2(UBound(TmpSplit2))
@@ -622,6 +625,26 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
             Exit For
         End If
     Next I
+
+'    '最終行を後ろから探索する
+'    For I = UBound(TmpSplit) + 3 To 0 Step -1
+'        TmpCode = InputModule.CodeModule.Lines(CodeStart, I)
+'        TmpSplit2 = Split(TmpCode, vbLf)
+'        LastStr = TmpSplit2(UBound(TmpSplit2))
+'
+'        LastStr = Trim(LastStr) '先頭のスペースを除去
+'        If InStr(1, LastStr, "'") > 0 Then
+'            LastStr = Split(LastStr, "'")(0) 'コメントを除去
+'        End If
+'
+'        If InStr(1, LastStr, "End Function") > 0 _
+'            Or InStr(1, LastStr, "End Sub") > 0 _
+'            Or InStr(1, LastStr, "End Property") > 0 Then
+'            Output = TmpCode
+'            Debug.Print LastStr
+'            Exit For
+'        End If
+'    Next I
 
     If Output = "" Then
         'それでも最終行が見つからなかった場合
@@ -680,6 +703,8 @@ Private Function コードの取得修正プロパティ用(InputModule As VBComponent, CodeSt
 End Function
 
 Private Function コードの取得最強版(InputModule As VBComponent, ProcedureName$)
+    
+
     
     Dim Output$
     Dim TmpStart&, TmpCount&, TmpProcKind%
@@ -743,6 +768,7 @@ Function プロシージャがプロパティか判定(InputModule As VBComponent, ProcedureNam
 End Function
 
 Private Function コードの取得最強版プロパティ専用(InputModule As VBComponent, ProcedureName$)
+    
     
     Dim Output
     Dim TmpStart&, TmpCount&, TmpProcKind%

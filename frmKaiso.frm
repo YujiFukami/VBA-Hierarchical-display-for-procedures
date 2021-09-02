@@ -17,11 +17,11 @@ Attribute VB_Exposed = False
 Option Explicit
 '色付け用の列挙型(モジュール)
 Private Enum ModuleColor
-    Module = rgbBlue
-    Document = rgbGreen
-    Class = rgbLightPink
-    Form = rgbRed
-    ActiveX = rgbLightGray
+    Module_ = rgbBlue
+    Document_ = rgbGreen
+    Class_ = rgbLightPink
+    Form_ = rgbRed
+    ActiveX_ = rgbLightGray
 End Enum
 
 '色付け用の列挙型(プロシージャ)
@@ -62,6 +62,7 @@ Private Sub CmdExt_Click()
         Exit Sub
     End If
     
+    Me.CmdExtCodeCopy.Enabled = True
     PriExtProcedureList = ExtProcedureList(Me.ListVBProject.ListIndex + 1)
     
     PriProcedureList = PriExtProcedureList
@@ -86,11 +87,41 @@ Private Sub CmdExt_Click()
         
         Next I
         
-        
     End If
 
 End Sub
 
+Private Sub 外部参照プロシージャコードコピー()
+    
+    If IsEmpty(PriExtProcedureList) Then Exit Sub
+    
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    Dim TmpCode$, TmpProcedureName$
+    Dim TmpProcedureDict As Object
+    Set TmpProcedureDict = CreateObject("Scripting.Dictionary")
+    TmpCode = ""
+    Dim TmpClassProcedure As ClassProcedure
+    
+    For I = 1 To UBound(PriExtProcedureList)
+        Set TmpClassProcedure = PriProcedureList(I)
+        TmpProcedureName = TmpClassProcedure.Name
+        
+        If TmpProcedureDict.Exists(TmpProcedureName) = False Then
+            TmpProcedureDict.Add TmpProcedureName, ""
+            TmpCode = TmpCode & vbLf & vbLf & TmpClassProcedure.Code
+        End If
+    Next I
+    
+    Call ClipboardCopy(TmpCode)
+    MsgBox ("外部参照プロシージャの全コードをクリップボードにコピーしました。")
+
+End Sub
+
+Private Sub CmdExtCodeCopy_Click()
+
+    Call 外部参照プロシージャコードコピー
+
+End Sub
 
 Private Sub CmdSwitch_Click()
     
@@ -475,6 +506,7 @@ Private Sub UserForm_Initialize()
     
     Me.ListViewCode.Visible = True
     Me.TreeProcedure.Visible = False
+    Me.CmdExtCodeCopy.Enabled = False
     
 End Sub
 
@@ -580,22 +612,20 @@ Sub コード検索実行(SearchStr$)
               
 End Sub
 
-
-
 Private Function モジュール種類での色取得(ModuleType$)
     
     Dim Output&
     Select Case ModuleType
     Case "標準モジュール"
-        Output = ModuleColor.Module
+        Output = ModuleColor.Module_
     Case "クラスモジュール"
-        Output = ModuleColor.Class
+        Output = ModuleColor.Class_
     Case "ユーザーフォーム"
-        Output = ModuleColor.Form
+        Output = ModuleColor.Form_
     Case "ActiveX デザイナ"
-        Output = ModuleColor.ActiveX
+        Output = ModuleColor.ActiveX_
     Case "Document モジュール"
-        Output = ModuleColor.Document
+        Output = ModuleColor.Document_
     End Select
         
     モジュール種類での色取得 = Output
@@ -702,18 +732,24 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
         If ShowProcedure.UseProcedure.Count > 0 Then
             For I = 1 To ShowProcedure.UseProcedure.Count
                 Set TmpProcedure = ShowProcedure.UseProcedure(I)
-                TmpKey = ParentKey & "_" & TmpProcedure.Name & .Nodes.Count
                 
-                .Nodes.Add Relative:=ParentKey, _
-                           Relationship:=tvwChild, Key:=TmpKey, _
-                           Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
-                
-                ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
-                Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
-                .Nodes(TmpKey).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
-                
-                Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey)
-                .Nodes(TmpKey).Expanded = True
+                If Len(ParentKey) > 100 Then
+'                    Stop
+                Else
+                    
+                    TmpKey = ParentKey & "_" & TmpProcedure.Name & .Nodes.Count
+                    
+                    .Nodes.Add Relative:=ParentKey, _
+                               Relationship:=tvwChild, Key:=TmpKey, _
+                               Text:=TmpProcedure.Name & "(" & TmpProcedure.UseProcedure.Count & ")"
+                    
+                    ReDim Preserve PriTreeProcedureList(1 To UBound(PriTreeProcedureList, 1) + 1)
+                    Set PriTreeProcedureList(UBound(PriTreeProcedureList, 1)) = TmpProcedure
+                    .Nodes(TmpKey).ForeColor = プロシージャ種類での色取得(TmpProcedure.ProcedureType)
+                    
+                    Call 再帰型ツリービューにプロシージャの階層表示(TmpProcedure, TmpKey)
+                    .Nodes(TmpKey).Expanded = True
+                End If
                 
                 
             Next I
@@ -765,7 +801,7 @@ Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
     End With
     
     On Error Resume Next
-    Application.GoTo Reference:=ReferenceStr
+    Application.Goto Reference:=ReferenceStr
     On Error GoTo 0
 
 End Sub
