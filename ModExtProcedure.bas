@@ -172,7 +172,7 @@ End Function
 
 Function コードを検索用に変更(InputCode) As Object
     
-    Dim CodeList, TmpStr$
+    Dim CodeList, TmpStr$, TmpRowStr$
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
     CodeList = Split(InputCode, vbLf)
     CodeList = Application.Transpose(CodeList)
@@ -191,6 +191,7 @@ Function コードを検索用に変更(InputCode) As Object
     
     For I = 1 To N
         TmpStr = CodeList(I)
+        TmpRowStr = TmpStr
         TmpStr = Trim(TmpStr) '左右の空白除去
         TmpStr = StrConv(TmpStr, vbUpperCase) '小文字に変換
 '        TmpStr = StrConv(TmpStr, vbNarrow) '半角に変換
@@ -198,7 +199,7 @@ Function コードを検索用に変更(InputCode) As Object
             TmpStr = Split(TmpStr, "'")(0) 'コメントの除去
         End If
         TmpStr = Replace(TmpStr, Chr(13), "") '改行を消去
-        
+        TmpStr = コード一行を検索用に変換(TmpStr)
         
         If TmpStr <> "" Then
             '指定文字で分割する
@@ -208,8 +209,12 @@ Function コードを検索用に変更(InputCode) As Object
             TmpBunkatu = Split(TmpStr, HenkanStr)
             
             For J = 0 To UBound(TmpBunkatu)
-                If BunkatuDict.Exists(TmpBunkatu(J)) = False Then
-                    BunkatuDict.Add TmpBunkatu(J), ""
+                If プロシージャ検索用文字列かどうか判定(TmpRowStr, TmpBunkatu(J)) Then
+                    If BunkatuDict.Exists(TmpBunkatu(J)) = False Then
+                        BunkatuDict.Add TmpBunkatu(J), ""
+                    End If
+                Else
+'                    Stop
                 End If
             Next J
         End If
@@ -218,6 +223,63 @@ Function コードを検索用に変更(InputCode) As Object
     Set Output = BunkatuDict
     Set コードを検索用に変更 = Output
 
+End Function
+
+Function プロシージャ検索用文字列かどうか判定(RowStr$, Str)
+
+    Dim Hantei As Boolean
+    Dim HanteiStr$
+    HanteiStr = Replace(RowStr, """", "!")
+    
+    If Str = "+" Or Str = "=" Or Str = "-" Or Str = "/" Or Str = "" Then
+        Hantei = False
+    ElseIf InStr(1, RowStr, """" & Str & """") > 0 Then '分割する文字列が「"」で挟まれた文字でない
+        Hantei = False
+    ElseIf Str = "SUB" Or Str = "FUNCTION" Or Str = "END" Or Str = "EXIT" Or Str = "DIM" Or Str = "BYVAL" Or Str = "AS" Or Str = "RANGE" Or Str = "CALL" Then '予約語
+        Hantei = False
+    ElseIf Str = "ON" Or Str = "ERROR" Or Str = "NEXT" Or Str = "SET" Or Str = "RESUME" Or Str = "OR" Or Str = "ELSEIF" Then '予約語
+        Hantei = False
+    ElseIf IsNumeric(Mid(Str, 1, 1)) Then '1文字目が数字でない
+        Hantei = False
+    Else
+        Hantei = True
+    End If
+    
+    プロシージャ検索用文字列かどうか判定 = Hantei
+    
+End Function
+
+Private Sub Testコード一行を検索用に変換()
+    
+    Dim Str$
+    Str = "A" & """" & """" & """" & """" & "B"
+    Call コード一行を検索用に変換(Str)
+    
+End Sub
+
+Function コード一行を検索用に変換(ByVal RowStr$)
+'「"」で挟まれた文字列を消去する
+    RowStr = Replace(RowStr, """" & """", "")
+    Dim TmpSplit
+    Dim Output$
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    If InStr(1, RowStr, """") > 0 Then
+        TmpSplit = Split(RowStr, """")
+        
+        For I = 0 To UBound(TmpSplit, 1) '奇数番目は「"」で挟まれた文字列である
+            If I Mod 2 = 0 Then
+                Output = Output & TmpSplit(I) & " "
+            End If
+        Next I
+        
+    Else
+        Output = RowStr
+    End If
+        
+    コード一行を検索用に変換 = Output
+
+    
+    
 End Function
 
 Function 全プロシージャ一覧作成(VBProjectList)
@@ -497,7 +559,7 @@ Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As C
     
     '再帰関数の深さ（ループ）が一定以上超えないようにする。
     Depth = Depth + 1
-    If Depth > 15 Then
+    If Depth > 10 Then
         Debug.Print "外部参照プロシージャ探索で、規定数の階層を超えました。"
         Debug.Print ClassProcedure.Name
         Exit Sub

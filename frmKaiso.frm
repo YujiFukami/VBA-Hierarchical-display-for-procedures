@@ -87,6 +87,8 @@ Private Sub CmdExt_Click()
         
         Next I
         
+    Else
+        MsgBox ("外部参照しているプロシージャは見つかりませんでした")
     End If
 
 End Sub
@@ -725,8 +727,9 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
         
     '再帰関数の深さ（ループ）が一定以上超えないようにする。
     Depth = Depth + 1
+    Debug.Print String(Depth, " ") & "└" & ShowProcedure.Name
     If Depth > 15 Then
-        Debug.Print "規定数の階層を超えました", ShowProcedure.Name
+'        Debug.Print "規定数の階層を超えました", ShowProcedure.Name
         Exit Sub
     End If
     
