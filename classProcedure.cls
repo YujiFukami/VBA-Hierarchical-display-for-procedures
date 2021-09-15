@@ -52,11 +52,11 @@ Property Set MyKensakuCode(InputKensakuCode As Object)
 End Property
 
 '使用プロシージャ
-Public Sub AddUseProcedure(InputUseProcedure As ClassProcedure)
+Public Sub AddUseProcedure(InputUseProcedure As classProcedure)
     UseProcedure.Add InputUseProcedure
 End Sub
 
-Public Function Item(Index&) As ClassProcedure
+Public Function Item(Index&) As classProcedure
     Set Item = UseProcedure(Index)
 End Function
 

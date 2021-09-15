@@ -16,10 +16,11 @@ Function フォーム用VBProject作成()
     Dim OutputVBProjectList() As classVBProject
     Dim TmpClassVBProject As classVBProject
     Dim TmpClassModule As classModule
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     Dim VBProjectList As VBProjects, TmpVBProject As VBProject
     Dim TmpModule As VBComponent, TmpProcedureNameList, TmpCodeDict As Object
     Dim TmpProcedureName$
+    Dim TmpSengenStr$, TmpFirstProcedureName$
     Dim Dummy
     
     Set VBProjectList = ActiveWorkbook.VBProject.VBE.VBProjects
@@ -42,18 +43,22 @@ Function フォーム用VBProject作成()
             
 '            TmpProcedureNameList = モジュールのプロシージャ名一覧取得(TmpModule)
             Set TmpCodeDict = モジュールのコード一覧取得(TmpModule)
-            
+
             If TmpCodeDict Is Nothing Then
                 TmpProcedureNameList = Empty
+                TmpFirstProcedureName = ""
             Else
                 TmpProcedureNameList = TmpCodeDict.Keys
                 TmpProcedureNameList = Application.Transpose(Application.Transpose(TmpProcedureNameList))
+                TmpFirstProcedureName = TmpProcedureNameList(1)
             End If
             
+            TmpSengenStr = モジュールの冒頭文取得(TmpModule, TmpFirstProcedureName)
+            TmpClassModule.Sengen = TmpSengenStr
             
             If IsEmpty(TmpProcedureNameList) = False Then
                 For II = 1 To UBound(TmpProcedureNameList)
-                    Set TmpClassProcedure = New ClassProcedure
+                    Set TmpClassProcedure = New classProcedure
                     TmpProcedureName = TmpProcedureNameList(II)
                     TmpClassProcedure.Name = TmpProcedureName
                     TmpClassProcedure.Code = TmpCodeDict(TmpProcedureName)
@@ -113,8 +118,8 @@ Function モジュールのプロシージャ名一覧取得(InputModule As VBComponent)
     With InputModule.CodeModule
         K = 0
         For I = 1 To .CountOfLines
-            If TmpStr <> .ProcOfLine(I, 0) Then
-                TmpStr = .ProcOfLine(I, 0)
+            If TmpStr <> .ProcofLine(I, 0) Then
+                TmpStr = .ProcofLine(I, 0)
                 K = K + 1
                 ReDim Preserve Output(1 To K)
                 Output(K) = TmpStr
@@ -277,8 +282,6 @@ Function コード一行を検索用に変換(ByVal RowStr$)
     End If
         
     コード一行を検索用に変換 = Output
-
-    
     
 End Function
 
@@ -289,7 +292,7 @@ Function 全プロシージャ一覧作成(VBProjectList)
     'プロシージャの個数を計算
     Dim TmpClassVBProject As classVBProject
     Dim TmpClassModule As classModule
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     
     ProcedureCount = 0
     For I = 1 To UBound(VBProjectList, 1)
@@ -338,13 +341,13 @@ Sub プロシージャ内の使用プロシージャ取得(VBProjectList() As classVBProject, AllP
     'プロシージャの個数を計算
     Dim TmpClassVBProject As classVBProject
     Dim TmpClassModule As classModule
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     Dim TmpVBProjectNum%, TmpModuleNum%, TmpProcedureNum%
     Dim TmpKensakuCode As Object
     Dim TmpVBProjectName$, TmpModuleName$, TmpProcedureName$
     Dim TmpSiyosakiList As Object
-    Dim TmpSiyoProcedure As ClassProcedure
-    Dim TmpSiyoProcedureList() As ClassProcedure
+    Dim TmpSiyoProcedure As classProcedure
+    Dim TmpSiyoProcedureList() As classProcedure
     Dim NaibuSansyoNaraTrue As Boolean
     Dim TmpHantei As Boolean
     
@@ -402,6 +405,9 @@ Sub プロシージャ内の使用プロシージャ取得(VBProjectList() As classVBProject, AllP
                     End If
                 Next JJ
                 
+                
+'                If TmpClassProcedure.Name = "MakeDictFromArrayWithItem" Then Stop
+                
                 '外部参照しているが、内部でも同じ名前で参照しているときは除外する
                 If K = 0 Then
                     '使用プロシージャなし・・・何もしない
@@ -412,11 +418,32 @@ Sub プロシージャ内の使用プロシージャ取得(VBProjectList() As classVBProject, AllP
                     For JJ = 1 To K
                         Set TmpSiyoProcedure = TmpSiyoProcedureList(JJ)
                         TmpVBProjectName = TmpSiyoProcedure.VBProjectName
+                        TmpModuleName = TmpSiyoProcedure.ModuleName
                         TmpProcedureName = TmpSiyoProcedure.Name
                         
-                        If TmpVBProjectName = TmpClassVBProject.Name Then
-                            '内部参照(使用プロシージャのVBProject名が自身のVBProject名と一致している)
+                        If TmpVBProjectName = TmpClassVBProject.Name And TmpModuleName = TmpClassModule.Name Then
+                            '内部参照(使用プロシージャのVBProject名とモジュール名が自身と一致している)
                             TmpClassProcedure.AddUseProcedure TmpSiyoProcedure
+                        ElseIf TmpVBProjectName = TmpClassVBProject.Name And TmpModuleName <> TmpClassModule.Name Then
+                            '同じVBProject内参照だが、外Moduleから参照している。
+                            
+                            '同じモジュール内で参照がすでにしてあるか判定
+                            NaibuSansyoNaraTrue = False
+                            For III = 1 To K
+                                If JJ <> III Then
+                                    If TmpProcedureName = TmpSiyoProcedureList(III).Name And _
+                                       TmpClassModule.Name = TmpSiyoProcedureList(III).ModuleName Then
+                                        '内部参照済み
+                                        NaibuSansyoNaraTrue = True
+                                        Exit For
+                                    End If
+                                End If
+                            Next III
+                            
+                            If NaibuSansyoNaraTrue = False Then
+                                TmpClassProcedure.AddUseProcedure TmpSiyoProcedure
+                            End If
+                            
                         Else
                             '外部参照(使用プロシージャのVBProject名が自身のVBProject名と一致していない)
                             
@@ -451,7 +478,7 @@ Function 外部参照プロシージャ連想配列作成(VBProjectList() As classVBProject)
     'プロシージャの個数を計算
     Dim TmpClassVBProject As classVBProject
     Dim TmpClassModule As classModule
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     
     Dim TmpVBProjectName$, TmpModuleName$, TmpProcedureName$
     Dim TmpCode$
@@ -483,18 +510,18 @@ End Function
 
 
 
-Sub プロシージャ内の外部参照プロシージャ取得連想配列用(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureDict As Object)
+Sub プロシージャ内の外部参照プロシージャ取得連想配列用(VBProjectName$, classProcedure As classProcedure, ExtProcedureDict As Object)
     
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
-    Dim TmpUseProcedure As ClassProcedure
-    Dim TmpUseProcedure2 As ClassProcedure
+    Dim TmpUseProcedure As classProcedure
+    Dim TmpUseProcedure2 As classProcedure
     Dim GaibuSansyoNaraTrue As Boolean
     
-    If ClassProcedure.UseProcedure.Count = 0 Then
+    If classProcedure.UseProcedure.Count = 0 Then
         '使用しているプロシージャ無しの場合何もしない
     Else
-        For I = 1 To ClassProcedure.UseProcedure.Count
-            Set TmpUseProcedure = ClassProcedure.UseProcedure(I)
+        For I = 1 To classProcedure.UseProcedure.Count
+            Set TmpUseProcedure = classProcedure.UseProcedure(I)
             
             '再帰(使用プロシージャ内の外部参照を探る)
             Call プロシージャ内の外部参照プロシージャ取得連想配列用(VBProjectName, TmpUseProcedure, ExtProcedureDict)
@@ -503,8 +530,8 @@ Sub プロシージャ内の外部参照プロシージャ取得連想配列用(VBProjectName$, ClassProc
                 
                 '既に自分のVBProject内に同じ名前のプロシージャが存在すれば、外部参照でない
                 GaibuSansyoNaraTrue = True
-                For J = 1 To ClassProcedure.UseProcedure.Count
-                    Set TmpUseProcedure2 = ClassProcedure.UseProcedure(J)
+                For J = 1 To classProcedure.UseProcedure.Count
+                    Set TmpUseProcedure2 = classProcedure.UseProcedure(J)
                     If TmpUseProcedure2.VBProjectName = VBProjectName And TmpUseProcedure2.Name = TmpUseProcedure.Name Then
                         GaibuSansyoNaraTrue = False
                         Exit For
@@ -526,14 +553,14 @@ Function 外部参照プロシージャリスト作成(VBProjectList() As classVBProject)
     'プロシージャの個数を計算
     Dim TmpClassVBProject As classVBProject
     Dim TmpClassModule As classModule
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     
     Dim TmpVBProjectName$, TmpModuleName$, TmpProcedureName$
     Dim TmpCode$
     
     Dim TmpVBProject
     
-    Dim TmpExtProcedureList() As ClassProcedure
+    Dim TmpExtProcedureList() As classProcedure
     N = UBound(VBProjectList, 1)
     ReDim Output(1 To N)
     For I = 1 To N
@@ -555,27 +582,27 @@ Function 外部参照プロシージャリスト作成(VBProjectList() As classVBProject)
     
 End Function
 
-Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As ClassProcedure, ExtProcedureList() As ClassProcedure, ByVal Depth&)
+Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, classProcedure As classProcedure, ExtProcedureList() As classProcedure, ByVal Depth&)
     
     '再帰関数の深さ（ループ）が一定以上超えないようにする。
     Depth = Depth + 1
     If Depth > 10 Then
         Debug.Print "外部参照プロシージャ探索で、規定数の階層を超えました。"
-        Debug.Print ClassProcedure.Name
+        Debug.Print classProcedure.Name
         Exit Sub
     End If
     
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
-    Dim TmpUseProcedure As ClassProcedure
-    Dim TmpUseProcedure2 As ClassProcedure
+    Dim TmpUseProcedure As classProcedure
+    Dim TmpUseProcedure2 As classProcedure
     Dim GaibuSansyoNaraTrue As Boolean
     Dim TmpHantei As Boolean
     
-    If ClassProcedure.UseProcedure.Count = 0 Then
+    If classProcedure.UseProcedure.Count = 0 Then
         '使用しているプロシージャ無しの場合何もしない
     Else
-        For I = 1 To ClassProcedure.UseProcedure.Count
-            Set TmpUseProcedure = ClassProcedure.UseProcedure(I)
+        For I = 1 To classProcedure.UseProcedure.Count
+            Set TmpUseProcedure = classProcedure.UseProcedure(I)
             
             '再帰(使用プロシージャ内の外部参照を探る)
             Call プロシージャ内の外部参照プロシージャ取得(VBProjectName, TmpUseProcedure, ExtProcedureList, Depth)
@@ -584,8 +611,8 @@ Sub プロシージャ内の外部参照プロシージャ取得(VBProjectName$, ClassProcedure As C
                 
                 '既に自分のVBProject内に同じ名前のプロシージャが存在すれば、外部参照でない
                 GaibuSansyoNaraTrue = True
-                For J = 1 To ClassProcedure.UseProcedure.Count
-                    Set TmpUseProcedure2 = ClassProcedure.UseProcedure(J)
+                For J = 1 To classProcedure.UseProcedure.Count
+                    Set TmpUseProcedure2 = classProcedure.UseProcedure(J)
                     If TmpUseProcedure2.VBProjectName = VBProjectName And TmpUseProcedure2.Name = TmpUseProcedure.Name Then
                         GaibuSansyoNaraTrue = False
                         Exit For
@@ -686,13 +713,24 @@ Private Function コードの取得修正(InputModule As VBComponent, CodeStart&, CodeCo
             LastStr = Split(LastStr, "'")(0) 'コメントを除去
         End If
         
-        If InStr(1, LastStr, "End Function") > 0 _
-            Or InStr(1, LastStr, "End Sub") > 0 _
-            Or InStr(1, LastStr, "End Property") > 0 Then
+        LastStr = コード一行を検索用に変換(LastStr)
+        
+        If Mid(LastStr, 1, Len("End Function")) = "End Function" Or _
+           Mid(LastStr, 1, Len("End Sub")) = "End Sub" Or _
+           Mid(LastStr, 1, Len("End Property")) = "End Property" Then
             Output = TmpCode
-'            Debug.Print LastStr
             Exit For
         End If
+        
+'        If InStr(1, LastStr, "End Function") > 0 _
+'            Or InStr(1, LastStr, "End Sub") > 0 _
+'            Or InStr(1, LastStr, "End Property") > 0 Then
+'            Output = TmpCode
+''            Debug.Print LastStr
+'            Exit For
+'        End If
+        
+        
     Next I
 
     If Output = "" Then
@@ -708,9 +746,7 @@ End Function
 
 
 Private Function コードの取得最強版(InputModule As VBComponent, ProcedureName$)
-    
 
-    
     Dim Output$
     Dim TmpStart&, TmpCount&, TmpProcKind%
     
@@ -848,3 +884,43 @@ Private Function コードの取得最強版プロパティ専用(InputModule As VBComponent, Pr
 
 End Function
 
+Private Function モジュールの冒頭文取得(InputModule As VBComponent, FirstProcedureName$)
+    
+    Dim Output$
+    Dim CodeCount&
+    Dim TmpStart&
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    
+    If FirstProcedureName <> "" Then
+'        Stop
+        '最初のプロシージャの開始位置取得して、開始行からプロシージャ開始位置の手前までを取得する
+        '参考：https://docs.microsoft.com/ja-jp/office/vba/api/access.module.procbodyline
+        TmpStart = -1
+        'プロシージャがSub/Functionプロシージャか、Property Get/Let/Setプロシージャかまだ不明なので、手あたり次第探る。
+        On Error Resume Next
+        With InputModule.CodeModule
+            TmpStart = .ProcBodyLine(FirstProcedureName, vbext_pk_Proc) 'Sub/Functionプロシージャ
+            If TmpStart = -1 Then
+                TmpStart = .ProcBodyLine(FirstProcedureName, vbext_pk_Get) 'Property Getプロシージャ
+                If TmpStart = -1 Then
+                    TmpStart = .ProcBodyLine(FirstProcedureName, vbext_pk_Let) 'Property Letプロシージャ
+                    If TmpStart = -1 Then
+                        TmpStart = .ProcBodyLine(FirstProcedureName, vbext_pk_Set) 'Property Setプロシージャ
+                    End If
+                End If
+            End If
+            
+            Output = .Lines(1, TmpStart - 1)
+        End With
+'        Stop
+        On Error GoTo 0
+    Else
+'        Stop
+        'プロシージャがない場合
+        CodeCount = InputModule.CodeModule.CountOfLines
+        Output = InputModule.CodeModule.Lines(1, CodeCount)
+    End If
+    
+    モジュールの冒頭文取得 = Output
+    
+End Function

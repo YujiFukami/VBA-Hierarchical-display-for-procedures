@@ -38,13 +38,13 @@ End Enum
 Private PriVBProjectNameList
 Private PriVBProjectList() As classVBProject
 Private PriModuleList() As classModule
-Private PriProcedureList() As ClassProcedure
-Private PriUseProcedureList() As ClassProcedure
-Private PriProcedure As ClassProcedure
-Private PriShowProcedure As ClassProcedure
-Private PriTreeProcedureList() As ClassProcedure
-Private PriSearchProcedureList() As ClassProcedure
-Private PriExtProcedureList() As ClassProcedure
+Private PriProcedureList() As classProcedure
+Private PriUseProcedureList() As classProcedure
+Private PriProcedure As classProcedure
+Private PriShowProcedure As classProcedure
+Private PriTreeProcedureList() As classProcedure
+Private PriSearchProcedureList() As classProcedure
+Private PriExtProcedureList() As classProcedure
 
 Private Sub CmdCodeCopy_Click()
     
@@ -102,7 +102,7 @@ Private Sub 外部参照プロシージャコードコピー()
     Dim TmpProcedureDict As Object
     Set TmpProcedureDict = CreateObject("Scripting.Dictionary")
     TmpCode = ""
-    Dim TmpClassProcedure As ClassProcedure
+    Dim TmpClassProcedure As classProcedure
     
     For I = 1 To UBound(PriExtProcedureList)
         Set TmpClassProcedure = PriProcedureList(I)
@@ -413,7 +413,7 @@ End Sub
 
 Private Sub TreeProcedure_NodeClick(ByVal Node As MSComctlLib.Node)
     
-    Dim TmpProcedure As ClassProcedure
+    Dim TmpProcedure As classProcedure
     Set TmpProcedure = PriTreeProcedureList(Node.Index)
     
     Call プロシージャコード表示(TmpProcedure)
@@ -556,7 +556,7 @@ Sub コード検索実行(SearchStr$)
 
     Dim TmpVBProject As classVBProject
     Dim TmpModule As classModule
-    Dim TmpProcedure As ClassProcedure
+    Dim TmpProcedure As classProcedure
     
     ReDim PriSearchProcedureList(1 To 1)
     
@@ -654,7 +654,7 @@ Private Function プロシージャ種類での色取得(ProcedureType$)
     
 End Function
 
-Private Sub プロシージャコード表示(ShowProcedure As ClassProcedure)
+Private Sub プロシージャコード表示(ShowProcedure As classProcedure)
     
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -699,7 +699,7 @@ Private Sub コードのコピー()
 
 End Sub
 
-Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure)
+Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As classProcedure)
     
     '初期化
     Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
@@ -723,7 +723,7 @@ Private Sub ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure
     
 End Sub
 
-Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassProcedure, ParentKey$, ByVal Depth&)
+Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As classProcedure, ParentKey$, ByVal Depth&)
         
     '再帰関数の深さ（ループ）が一定以上超えないようにする。
     Depth = Depth + 1
@@ -735,7 +735,7 @@ Private Sub 再帰型ツリービューにプロシージャの階層表示(ShowProcedure As ClassPro
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
     Dim TmpKey$
-    Dim TmpProcedure As ClassProcedure
+    Dim TmpProcedure As classProcedure
     Dim DummyNum%
     With Me.TreeProcedure
         
@@ -798,7 +798,7 @@ Private Sub コードプロシージャリストビュー初期化()
 
 End Sub
 
-Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
+Private Sub 指定プロシージャVBE画面表示(ShowProcedure As classProcedure)
 'https://www.relief.jp/docs/excel-vba-application-goto-reference.html
     Dim ReferenceStr$
     With ShowProcedure
@@ -806,12 +806,12 @@ Private Sub 指定プロシージャVBE画面表示(ShowProcedure As ClassProcedure)
     End With
     
     On Error Resume Next
-    Application.Goto Reference:=ReferenceStr
+    Application.GoTo Reference:=ReferenceStr
     On Error GoTo 0
 
 End Sub
 
-Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIruNaraTrue As Boolean = False)
+Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIrunaraTrue As Boolean = False)
 '入力テキストをクリップボードに格納
 '配列ならば列方向をTabわけ、行方向を改行する。
 '20210719作成
@@ -895,7 +895,7 @@ Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIruNaraTrue As Bo
     End With
 
     '格納したテキスト変数をメッセージ表示
-    If MessageIruNaraTrue Then
+    If MessageIrunaraTrue Then
         MsgBox ("「" & Output & "」" & vbLf & _
                 "をクリップボードにコピーしました。")
     End If

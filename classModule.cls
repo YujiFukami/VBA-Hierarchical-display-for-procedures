@@ -14,6 +14,7 @@ Public Procedures As Collection
 Public VBProjectName$
 Public ModuleType$ 'モジュールのタイプ、標準モジュール、ユーザーフォーム、クラスモジュールなど
 Public BookName$
+Public Sengen$ '冒頭の宣言文
 
 '名前
 Property Get MyName()
@@ -29,12 +30,12 @@ Private Sub Class_Initialize()
     Set Procedures = New Collection
 End Sub
 
-Public Sub AddProcedure(InputProcedure As ClassProcedure)
+Public Sub AddProcedure(InputProcedure As classProcedure)
     Procedures.Add InputProcedure
 End Sub
 
 'プロシージャ取得
-Public Function Item(Index&) As ClassProcedure
+Public Function Item(Index&) As classProcedure
     Set Item = Procedures(Index)
 End Function
 
@@ -65,4 +66,12 @@ Property Let MyBookName(InputBookName)
     BookName = InputBookName
 End Property
 
+'冒頭の宣言文
+Property Get MySengen()
+    MySengen = Sengen
+End Property
+
+Property Let MySengen(InputSengen)
+    Sengen = InputSengen
+End Property
 
