@@ -1,25 +1,20 @@
 Attribute VB_Name = "ModRefLibraryForKaiso"
 Option Explicit
 
-'RefLibraryForKaiso                                   ・・・元場所：FukamiAddins3.ModRefLibraryForKaiso
-'VBIDE参照                                            ・・・元場所：FukamiAddins3.ModRefLibraryForKaiso
-'SetRefLibraryGuid                                    ・・・元場所：FukamiAddins3.ModRefLibrary        
-'GetLibNameFromGuid                                   ・・・元場所：FukamiAddins3.ModRefLibrary        
-'GetRefLibrary                                        ・・・元場所：FukamiAddins3.ModRefLibrary        
-'VBAプロジェクトへのアクセス許可設定警告メッセージ表示・・・元場所：FukamiAddins3.ModRefLibrary        
-'ExtractColArray                                      ・・・元場所：FukamiAddins3.ModArray             
-'CheckArray2D                                         ・・・元場所：FukamiAddins3.ModArray             
-'CheckArray2DStart1                                   ・・・元場所：FukamiAddins3.ModArray             
-'MakeDictFromArray1D                                  ・・・元場所：FukamiAddins3.ModDictionary        
-'CheckArray1D                                         ・・・元場所：FukamiAddins3.ModDictionary        
-'CheckArray1DStart1                                   ・・・元場所：FukamiAddins3.ModDictionary        
-'MSForms参照                                          ・・・元場所：FukamiAddins3.ModRefLibraryForKaiso
-'MSComctlLib参照                                      ・・・元場所：FukamiAddins3.ModRefLibraryForKaiso
-
-'------------------------------
-
-
-'階層化フォーム用のライブラリ自動参照プログラム
+'RefLibraryForKaiso                                   ・・・元場所：FukamiAddins3.ModRefLibrary
+'SetLib_VBIDE                                         ・・・元場所：FukamiAddins3.ModRefLibrary
+'SetRefLibraryGuid                                    ・・・元場所：FukamiAddins3.ModRefLibrary
+'GetLibNameFromGuid                                   ・・・元場所：FukamiAddins3.ModRefLibrary
+'GetRefLibrary                                        ・・・元場所：FukamiAddins3.ModRefLibrary
+'VBAプロジェクトへのアクセス許可設定警告メッセージ表示・・・元場所：FukamiAddins3.ModRefLibrary
+'ExtractColArray                                      ・・・元場所：FukamiAddins3.ModArray     
+'CheckArray2D                                         ・・・元場所：FukamiAddins3.ModArray     
+'CheckArray2DStart1                                   ・・・元場所：FukamiAddins3.ModArray     
+'MakeDictFromArray1D                                  ・・・元場所：FukamiAddins3.ModDictionary
+'CheckArray1D                                         ・・・元場所：FukamiAddins3.ModDictionary
+'CheckArray1DStart1                                   ・・・元場所：FukamiAddins3.ModDictionary
+'SetLib_MSForms                                       ・・・元場所：FukamiAddins3.ModRefLibrary
+'SetLib_MSComctlLib                                   ・・・元場所：FukamiAddins3.ModRefLibrary
 
 '------------------------------
 
@@ -40,21 +35,22 @@ Option Explicit
 
 Public Sub RefLibraryForKaiso()
     '階層化フォーム用必要ライブラリ参照
-    Call VBIDE参照
-    Call MSForms参照
-    Call MSComctlLib参照
+    Call SetLib_VBIDE
+    Call SetLib_MSForms
+    Call SetLib_MSComctlLib
 
 End Sub
 
-Private Sub VBIDE参照()
-    
+Private Sub SetLib_VBIDE()
+'「Microsoft Visual Basic for Applications Extensibility 5.3」の自動参照(事前バウンディング)
+'20210927
+
     Dim LibGuid$, LibMajor&, LibMinor&
     LibGuid = "{0002E157-0000-0000-C000-000000000046}"
     LibMajor = 5
     LibMinor = 3
-    
-    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor)
-    
+    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor, ThisWorkbook)
+
 End Sub
 
 Private Function SetRefLibraryGuid(LibGuid$, LibMajor&, LibMinor&, Optional TargetBook As Workbook, Optional ShowAlert As Boolean = True)
@@ -388,25 +384,29 @@ Private Sub CheckArray1DStart1(InputArray, Optional HairetuName$ = "配列")
 
 End Sub
 
-Private Sub MSForms参照()
-    
+Private Sub SetLib_MSForms()
+'「Microsoft Forms 2.0 Object Library」の自動参照(事前バウンディング)
+'20210929
+
     Dim LibGuid$, LibMajor&, LibMinor&
     LibGuid = "{0D452EE1-E08F-101A-852E-02608C4D0BB4}"
     LibMajor = 2
     LibMinor = 0
     
-    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor)
+    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor, ThisWorkbook)
     
 End Sub
 
-Private Sub MSComctlLib参照()
-    
+Private Sub SetLib_MSComctlLib()
+'「Microsoft Windows Common Controls 6.0 (SP6)」の自動参照(事前バウンディング)
+'20210929
+
     Dim LibGuid$, LibMajor&, LibMinor&
     LibGuid = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}"
     LibMajor = 2
     LibMinor = 2
     
-    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor)
+    Call SetRefLibraryGuid(LibGuid, LibMajor, LibMinor, ThisWorkbook)
     
 End Sub
 
