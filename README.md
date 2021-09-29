@@ -20,7 +20,7 @@ Excelの設定でExcel2019の場合「Excelのオプション」→「トラス�
 ![Excelの設定](https://user-images.githubusercontent.com/73621859/126287884-57db4a75-3f34-4b35-b23d-f705067a1869.jpg)
 
 ## Step2
-「frmKaiso.fm」「ModExtProcedure.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
+「frmKaiso.fm」「ModExtProcedure.bas」「ModGetProcedureAllCode.bas」「ClassVBProject」「ClassModule」「ClassProcedure」をダウンロードし、VBEにインポートする。
 また、下記ライブラリを追加で参照すること。
 
 - 「Microsoft Forms 2.0 Object Library」→ListView,TreeViewを動かすためっぽい

@@ -1027,3 +1027,101 @@ Private Function プロシージャ一覧を作成(classProcedureList() As classProcedure)
     プロシージャ一覧を作成 = OutputStr
 
 End Function
+
+
+'MakeAligmentedArray・・・元場所：FukamiAddins3.ModAlignmentArray
+'------------------------------
+'文字列配列を整列させて1つの文字列として出力する
+'------------------------------
+
+Private Function MakeAligmentedArray(ByVal StrArray, Optional SikiriMoji$ = "：")
+    '20210916
+    '文字列配列を整列させて1つの文字列として出力する
+    
+    Dim I&, J&, K&, M&, N&                     '数え上げ用(Long型)
+    Dim TateMin&, TateMax&, YokoMin&, YokoMax& '配列の縦横インデックス最大最小
+    Dim WithTableArray                         'テーブル付配列…イミディエイトウィンドウに表示する際にインデックス番号を表示したテーブルを追加した配列
+    Dim NagasaList, MaxNagasaList              '各文字の文字列長さを格納、各列での文字列長さの最大値を格納
+    Dim NagasaOnajiList                        '" "（半角スペース）を文字列に追加して各列で文字列長さを同じにした文字列を格納
+    Dim OutputStr                              '文字列を格納
+    
+    '※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    '入力引数の処理
+    Dim Jigen2%
+    On Error Resume Next
+    Jigen2 = UBound(StrArray, 2)
+    On Error GoTo 0
+    If Jigen2 = 0 Then '1次元配列は2次元配列にする
+        StrArray = Application.Transpose(StrArray)
+    End If
+    
+    TateMin = LBound(StrArray, 1) '配列の縦番号（インデックス）の最小
+    TateMax = UBound(StrArray, 1) '配列の縦番号（インデックス）の最大
+    YokoMin = LBound(StrArray, 2) '配列の横番号（インデックス）の最小
+    YokoMax = UBound(StrArray, 2) '配列の横番号（インデックス）の最大
+    
+    
+    '※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    '各列の幅を同じに整えるために文字列長さとその各列の最大値を計算する。
+    N = UBound(StrArray, 1) '「StrArray」の縦インデックス数（行数）
+    M = UBound(StrArray, 2) '「StrArray」の横インデックス数（列数）
+    ReDim NagasaList(1 To N, 1 To M)
+    ReDim MaxNagasaList(1 To M)
+    
+    Dim TmpStr$
+    For J = 1 To M
+        For I = 1 To N
+        
+'            If J > 1 And HyoujiMaxNagasa <> 0 Then
+'                '最大表示長さが指定されている場合。
+'                '1列目のテーブルはそのままにする。
+'                TmpStr = StrArray(I, J)
+'                StrArray(I, J) = 文字列を指定バイト数文字数に省略(TmpStr, HyoujiMaxNagasa)
+'            End If
+            
+            NagasaList(I, J) = LenB(StrConv(StrArray(I, J), vbFromUnicode)) '全角と半角を区別して長さを計算する。
+            MaxNagasaList(J) = WorksheetFunction.Max(MaxNagasaList(J), NagasaList(I, J))
+            
+        Next I
+    Next J
+    
+    '※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    '" "(半角スペース)を追加して文字列長さを同じにする。
+    ReDim NagasaOnajiList(1 To N, 1 To M)
+    Dim TmpMaxNagasa&
+    
+    For J = 1 To M
+        TmpMaxNagasa = MaxNagasaList(J) 'その列の最大文字列長さ
+        For I = 1 To N
+            'Rept…指定文字列を指定個数連続してつなげた文字列を出力する。
+            '（最大文字数-文字数）の分" "（半角スペース）を後ろにくっつける。
+            NagasaOnajiList(I, J) = StrArray(I, J) & WorksheetFunction.Rept(" ", TmpMaxNagasa - NagasaList(I, J))
+       
+        Next I
+    Next J
+    
+    '※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    '文字列を作成
+    OutputStr = ""
+    For I = 1 To N
+        For J = 1 To M
+            If J = 1 Then
+                OutputStr = OutputStr & NagasaOnajiList(I, J)
+            Else
+                OutputStr = OutputStr & SikiriMoji & NagasaOnajiList(I, J)
+            End If
+        Next J
+        
+        If I < N Then
+            OutputStr = OutputStr & vbLf
+        End If
+    Next I
+    
+    ''※※※※※※※※※※※※※※※※※※※※※※※※※※※
+    '出力
+    MakeAligmentedArray = OutputStr
+    
+End Function
+
+
+
