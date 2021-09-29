@@ -918,7 +918,11 @@ Private Function モジュールの冒頭文取得(InputModule As VBComponent, FirstProcedu
 '        Stop
         'プロシージャがない場合
         CodeCount = InputModule.CodeModule.CountOfLines
-        Output = InputModule.CodeModule.Lines(1, CodeCount)
+        If CodeCount = 0 Then
+            Output = ""
+        Else
+            Output = InputModule.CodeModule.Lines(1, CodeCount)
+        End If
     End If
     
     モジュールの冒頭文取得 = Output
