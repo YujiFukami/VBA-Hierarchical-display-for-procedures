@@ -46,6 +46,12 @@ Private PriTreeProcedureList() As classProcedure
 Private PriSearchProcedureList() As classProcedure
 Private PriExtProcedureList() As classProcedure
 
+Private Sub CmdAllCodeCopy_Click()
+    
+    Call コードの使用先含め全部コピー
+
+End Sub
+
 Private Sub CmdCodeCopy_Click()
     
     Call コードのコピー
@@ -101,8 +107,23 @@ Private Sub 外部参照プロシージャコードコピー()
     Dim TmpCode$, TmpProcedureName$
     Dim TmpProcedureDict As Object
     Set TmpProcedureDict = CreateObject("Scripting.Dictionary")
-    TmpCode = ""
     Dim TmpClassProcedure As classProcedure
+    
+    Dim SengenList
+    SengenList = モジュールの宣言文を取得(PriExtProcedureList)
+    
+    Dim ProcedureItiran$
+    ProcedureItiran = プロシージャ一覧を作成(PriExtProcedureList)
+    
+    TmpCode = ""
+    TmpCode = "Option Explicit" & vbLf & vbLf
+    TmpCode = TmpCode & ProcedureItiran & vbLf
+    TmpCode = TmpCode & "'---------------------------------" & vbLf
+    
+    For I = 1 To UBound(SengenList, 1)
+        TmpCode = TmpCode & SengenList(I) & vbLf
+        TmpCode = TmpCode & "'---------------------------------" & vbLf
+    Next I
     
     For I = 1 To UBound(PriExtProcedureList)
         Set TmpClassProcedure = PriProcedureList(I)
@@ -115,7 +136,10 @@ Private Sub 外部参照プロシージャコードコピー()
     Next I
     
     Call ClipboardCopy(TmpCode)
-    MsgBox ("外部参照プロシージャの全コードをクリップボードにコピーしました。")
+    MsgBox ("外部参照プロシージャの全コードをクリップボードにコピーしました。" & vbLf & _
+            "プロシージャ個数：" & UBound(PriExtProcedureList, 1) & vbLf & _
+            "全コード長：" & UBound(Split(TmpCode, vbLf), 1) & vbLf & _
+            "文字数：" & Len(TmpCode))
 
 End Sub
 
@@ -693,7 +717,29 @@ Private Sub コードのコピー()
         Call ClipboardCopy(PriShowProcedure.Code, False)
         
         MsgBox ("「" & PriShowProcedure.Name & "」" & vbLf & _
-               "のコードをクリップボードにコピーしました")
+               "のコードをクリップボードにコピーしました" & vbLf & _
+               "コード長：" & UBound(Split(PriShowProcedure.Code, vbLf)) & vbLf & _
+               "文字数：" & Len(PriShowProcedure.Code))
+        
+    End If
+
+End Sub
+
+Private Sub コードの使用先含め全部コピー()
+    
+    Dim TmpProcedureName$
+    Dim CopyCode$
+    
+    If Not PriShowProcedure Is Nothing Then
+        TmpProcedureName = PriShowProcedure.VBProjectName & "." & PriShowProcedure.ModuleName & "." & PriShowProcedure.Name
+        CopyCode = GetProcedureAllCode(TmpProcedureName)
+        
+        Call ClipboardCopy(CopyCode, False)
+        
+        MsgBox ("「" & PriShowProcedure.Name & "」" & vbLf & _
+               "の使用先含めた全コードをクリップボードにコピーしました" & vbLf & _
+               "コード長：" & UBound(Split(CopyCode, vbLf)) & vbLf & _
+               "文字数：" & Len(CopyCode))
         
     End If
 
@@ -902,3 +948,82 @@ Private Sub ClipboardCopy(ByVal InputClipText, Optional MessageIrunaraTrue As Bo
     
 End Sub
 
+Private Function モジュールの宣言文を取得(UseProcedureList() As classProcedure)
+
+    Dim AllProcedureList, VBProjectList() As classVBProject
+    AllProcedureList = 全プロシージャ一覧作成(PriVBProjectList)
+    VBProjectList = PriVBProjectList
+    
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    N = UBound(UseProcedureList, 1)
+        
+    'VBProject名 & モジュール名 で重複を消去
+    Dim ModuleNameDict As Object
+    Set ModuleNameDict = CreateObject("Scripting.Dictionary")
+    Dim TmpModuleName$
+    For I = 1 To N
+        TmpModuleName = UseProcedureList(I).VBProjectName & "." & UseProcedureList(I).ModuleName
+        If ModuleNameDict.Exists(TmpModuleName) = False Then
+            ModuleNameDict.Add TmpModuleName, ""
+        End If
+    Next I
+    
+    Dim ModuleNameList
+    ModuleNameList = ModuleNameDict.Keys
+    ModuleNameList = Application.Transpose(Application.Transpose(ModuleNameList))
+    
+    N = UBound(ModuleNameList, 1)
+    
+    '宣言文を取得
+    Dim SengenList, TmpClassModule As classModule
+    ReDim SengenList(1 To N)
+    Dim Num1&, Num2&
+    
+    For I = 1 To N
+        TmpModuleName = ModuleNameList(I)
+        For J = 1 To UBound(AllProcedureList, 1)
+            If AllProcedureList(J, 1) = Split(TmpModuleName, ".")(0) And _
+               AllProcedureList(J, 2) = Split(TmpModuleName, ".")(1) Then
+               
+                Num1 = AllProcedureList(J, 4)
+                Num2 = AllProcedureList(J, 5)
+                
+                Set TmpClassModule = VBProjectList(Num1).Modules(Num2)
+                
+                SengenList(I) = TmpClassModule.Sengen
+                Exit For
+            End If
+        Next J
+    Next I
+    
+    'Option Explicitを消去する
+    For I = 1 To N
+        SengenList(I) = Replace(SengenList(I), "Option Explicit", "")
+    Next I
+    
+    モジュールの宣言文を取得 = SengenList
+    
+End Function
+
+Private Function プロシージャ一覧を作成(classProcedureList() As classProcedure)
+
+    Dim TmpClassProcedure As classProcedure
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    N = UBound(classProcedureList, 1)
+    Dim StrProcedureNameList
+    ReDim StrProcedureNameList(1 To N, 1 To 2)
+    
+    For I = 1 To N
+        Set TmpClassProcedure = classProcedureList(I)
+        
+        StrProcedureNameList(I, 1) = "'" & TmpClassProcedure.Name
+        StrProcedureNameList(I, 2) = "元場所：" & TmpClassProcedure.VBProjectName & "." & TmpClassProcedure.ModuleName
+        
+    Next I
+    
+    Dim OutputStr$
+    OutputStr = MakeAligmentedArray(StrProcedureNameList, "・・・")
+    
+    プロシージャ一覧を作成 = OutputStr
+
+End Function
