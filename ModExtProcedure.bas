@@ -29,7 +29,13 @@ Function フォーム用VBProject作成()
         Set TmpVBProject = VBProjectList(I)
         Set TmpClassVBProject = New classVBProject
         TmpClassVBProject.MyName = TmpVBProject.Name
+        
+        On Error Resume Next 'パスが見つかりませんへの対処
         TmpClassVBProject.MyBookName = Dir(TmpVBProject.FileName)
+        On Error GoTo 0
+        If TmpClassVBProject.BookName = "" Then 'パスが見つかりませんへの対処
+            TmpClassVBProject.MyBookName = TmpVBProject.Name & Format(I, "00") '被らないようにオリジナル番号を打つ
+        End If
         
         For J = 1 To TmpVBProject.VBComponents.Count
 '            If I = 2 And J = 25 Then Stop

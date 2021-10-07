@@ -46,6 +46,33 @@ Private PriTreeProcedureList() As classProcedure
 Private PriSearchProcedureList() As classProcedure
 Private PriExtProcedureList() As classProcedure
 
+'各リストビューのヘッダーの初期幅
+Private PriListViewColumnWidthModuleList&(1 To 2)
+Private PriListViewColumnWidthProcedureList&(1 To 6)
+Private PriListViewColumnWidthUseProcedureList&(1 To 6)
+Private PriListViewColumnWidthCodeList&(1 To 2)
+
+'ユーザーフォームの初期サイズ
+Private PriIniFormHeight#
+Private PriIniFormWidth#
+
+Private Sub Cmb文字サイズ_Change()
+    
+    '各リスト表示のコントロールのフォントサイズ変更
+    Dim SelectedFontSize&
+    SelectedFontSize = Me.Cmb文字サイズ.Text
+    
+    With Me
+        .ListVBProject.Font.Size = SelectedFontSize
+        .ListViewModule.Font.Size = SelectedFontSize
+        .ListViewProcedure.Font.Size = SelectedFontSize
+        .ListViewUseProcedure.Font.Size = SelectedFontSize
+        .ListViewCode.Font.Size = SelectedFontSize
+        .TreeProcedure.Font.Size = SelectedFontSize
+    End With
+    
+End Sub
+
 Private Sub CmdAllCodeCopy_Click()
     
     Call コードの使用先含め全部コピー
@@ -68,7 +95,6 @@ Private Sub CmdExt_Click()
         Exit Sub
     End If
     
-    Me.CmdExtCodeCopy.Enabled = True
     PriExtProcedureList = ExtProcedureList(Me.ListVBProject.ListIndex + 1)
     
     PriProcedureList = PriExtProcedureList
@@ -93,6 +119,7 @@ Private Sub CmdExt_Click()
         
         Next I
         
+        Me.CmdExtCodeCopy.Enabled = True
     Else
         MsgBox ("外部参照しているプロシージャは見つかりませんでした")
     End If
@@ -151,12 +178,13 @@ End Sub
 
 Private Sub CmdSwitch_Click()
     
-    If Me.CmdSwitch.Caption = "コード表示" Then
+    If Me.CmdSwitch.Caption = "階層表示" Then
         '階層表示モードに切り替え
-        Me.CmdSwitch.Caption = "階層表示"
+        Me.CmdSwitch.Caption = "コード表示"
 '        Me.ListViewCode.Visible = False
-        Me.ListViewCode.Height = 210
-        Me.ListViewCode.Top = 240
+'        Me.ListViewCode.Height = 300
+        Me.ListViewCode.Top = Me.TreeProcedure.Top + Me.TreeProcedure.Height + 1
+        Me.ListViewCode.Height = Me.Height - Me.ListViewCode.Top - 32
         Me.TreeProcedure.Visible = True
         If Not PriShowProcedure Is Nothing Then
             Call プロシージャコード表示(PriShowProcedure)
@@ -164,10 +192,10 @@ Private Sub CmdSwitch_Click()
         End If
     Else
         'コード表示モードに切り替え
-        Me.CmdSwitch.Caption = "コード表示"
+        Me.CmdSwitch.Caption = "階層表示"
 '        Me.ListViewCode.Visible = True
-        Me.ListViewCode.Height = 408
-        Me.ListViewCode.Top = 39
+        Me.ListViewCode.Top = Me.CmdSwitch.Top + Me.CmdSwitch.Height + 1
+        Me.ListViewCode.Height = Me.Height - Me.ListViewCode.Top - 32
         Me.TreeProcedure.Visible = False
         If Not PriShowProcedure Is Nothing Then
             Call プロシージャコード表示(PriShowProcedure)
@@ -228,7 +256,6 @@ Private Sub listVBProject_Click()
 
 End Sub
 
-
 Private Sub listViewModule_Click()
     
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
@@ -241,6 +268,8 @@ Private Sub listViewModule_Click()
     Me.txtVBProject.Text = ""
     Me.txtModule.Text = ""
     Me.txtKensaku.Text = ""
+    
+    On Error GoTo ErrorEscape
     
     For I = 1 To UBound(PriModuleList, 1)
         Select Case Me.ListViewModule.SelectedItem
@@ -271,7 +300,10 @@ Private Sub listViewModule_Click()
                 End If
         End Select
     Next I
-  
+      
+ErrorEscape:
+    Debug.Print Err.Number
+    On Error GoTo 0
     
 End Sub
 
@@ -299,6 +331,7 @@ Private Sub ListViewProcedure_Click()
         Me.ListViewCode.ListItems.Remove (1)
     Next I
     
+    On Error GoTo ErrorEscape
     If UBound(PriProcedureList, 1) <= 0 Then
         Exit Sub
     End If
@@ -308,7 +341,7 @@ Private Sub ListViewProcedure_Click()
             Case PriProcedureList(I).Name
                 
                 Set PriShowProcedure = PriProcedureList(I)
-                If Me.CmdSwitch.Caption = "コード表示" Then
+                If Me.CmdSwitch.Caption = "階層表示" Then
                     Call プロシージャコード表示(PriShowProcedure)
                 Else
                     Call ツリービューにプロシージャの階層表示(PriShowProcedure)
@@ -342,7 +375,13 @@ Private Sub ListViewProcedure_Click()
                 
         End Select
     Next I
-  
+    
+    Exit Sub
+    
+ErrorEscape:
+    Debug.Print Err.Number
+    On Error GoTo 0
+    
 End Sub
 
 Private Sub ListViewProcedure_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader)
@@ -358,7 +397,8 @@ End Sub
 Private Sub ListViewProcedure_DblClick()
 
     Dim I%, J%, K%, M%, N% '数え上げ用(Integer型)
-       
+    
+    On Error GoTo ErrorEscape
     If UBound(PriProcedureList, 1) <= 0 Then
         Exit Sub
     End If
@@ -374,6 +414,10 @@ Private Sub ListViewProcedure_DblClick()
         End Select
     Next I
     
+    
+ErrorEscape:
+    Debug.Print Err.Number
+    On Error GoTo 0
 
 End Sub
 
@@ -383,7 +427,7 @@ Private Sub ListViewUseProcedure_Click()
     
     Me.txtVBProject.Text = ""
     Me.txtModule.Text = ""
-
+    
     If UBound(PriUseProcedureList, 1) <= 0 Then
         Exit Sub
     End If
@@ -393,7 +437,7 @@ Private Sub ListViewUseProcedure_Click()
             Case PriUseProcedureList(I).Name
                 
                 Set PriShowProcedure = PriUseProcedureList(I)
-                If Me.CmdSwitch.Caption = "コード表示" Then
+                If Me.CmdSwitch.Caption = "階層表示" Then
                     Call プロシージャコード表示(PriShowProcedure)
                 Else
                     Call ツリービューにプロシージャの階層表示(PriShowProcedure)
@@ -445,6 +489,10 @@ Private Sub TreeProcedure_NodeClick(ByVal Node As MSComctlLib.Node)
 End Sub
 
 
+Private Sub UserForm_Activate()
+    Call SetFormEnableResize
+End Sub
+
 Private Sub UserForm_Initialize()
 
     PriVBProjectList = フォーム用VBProject作成
@@ -475,6 +523,11 @@ Private Sub UserForm_Initialize()
         .ColumnHeaders.Add , "個数", "個数"
         .ColumnHeaders.Add , "種類", "種類"
         .ColumnHeaders(2).Width = 16
+        
+        '各ヘッダーの幅をリサイズ用にとっておく
+        PriListViewColumnWidthModuleList(1) = .ColumnHeaders(1).Width
+        PriListViewColumnWidthModuleList(2) = .ColumnHeaders(2).Width
+        
     End With
     
     With Me.ListViewProcedure 'プロシージャのリストビューのタブ設定
@@ -495,6 +548,15 @@ Private Sub UserForm_Initialize()
         .ColumnHeaders(4).Width = 35
         .ColumnHeaders(5).Width = 25
         .ColumnHeaders(6).Width = 25
+    
+        '各ヘッダーの幅をリサイズ用にとっておく
+        PriListViewColumnWidthProcedureList(1) = .ColumnHeaders(1).Width
+        PriListViewColumnWidthProcedureList(2) = .ColumnHeaders(2).Width
+        PriListViewColumnWidthProcedureList(3) = .ColumnHeaders(3).Width
+        PriListViewColumnWidthProcedureList(4) = .ColumnHeaders(4).Width
+        PriListViewColumnWidthProcedureList(5) = .ColumnHeaders(5).Width
+        PriListViewColumnWidthProcedureList(6) = .ColumnHeaders(6).Width
+    
     End With
    
     With Me.ListViewUseProcedure '使用プロシージャのリストビューのタブ設定
@@ -515,6 +577,15 @@ Private Sub UserForm_Initialize()
         .ColumnHeaders(4).Width = 35
         .ColumnHeaders(5).Width = 25
         .ColumnHeaders(6).Width = 25
+
+        '各ヘッダーの幅をリサイズ用にとっておく
+        PriListViewColumnWidthUseProcedureList(1) = .ColumnHeaders(1).Width
+        PriListViewColumnWidthUseProcedureList(2) = .ColumnHeaders(2).Width
+        PriListViewColumnWidthUseProcedureList(3) = .ColumnHeaders(3).Width
+        PriListViewColumnWidthUseProcedureList(4) = .ColumnHeaders(4).Width
+        PriListViewColumnWidthUseProcedureList(5) = .ColumnHeaders(5).Width
+        PriListViewColumnWidthUseProcedureList(6) = .ColumnHeaders(6).Width
+
     End With
 
     With Me.ListViewCode 'コードのリストビューのタブ設定
@@ -527,13 +598,31 @@ Private Sub UserForm_Initialize()
         .ColumnHeaders.Add , "行", "行"
         .ColumnHeaders.Add , "コード", "コード"
         .ColumnHeaders(1).Width = 16
-        .ColumnHeaders(2).Width = 500
+        .ColumnHeaders(2).Width = 1000
+        
+        '各ヘッダーの幅をリサイズ用にとっておく
+        PriListViewColumnWidthCodeList(1) = .ColumnHeaders(1).Width
+        PriListViewColumnWidthCodeList(2) = .ColumnHeaders(2).Width
+    
     End With
     
     Me.ListViewCode.Visible = True
     Me.TreeProcedure.Visible = False
     Me.CmdExtCodeCopy.Enabled = False
     
+    With Me.Cmb文字サイズ '文字サイズのコンボボックスの設定
+        .List = Array(6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72)
+        .Text = 8
+        .ListWidth = 35
+        .ColumnWidths = 35
+    End With
+    
+    Call InitializeFormResize(Me)
+    
+    'リサイズ調整用にユーザーフォームのサイズを取っておく
+    PriIniFormHeight = Me.Height
+    PriIniFormWidth = Me.Width
+
 End Sub
 
 
@@ -852,7 +941,7 @@ Private Sub 指定プロシージャVBE画面表示(ShowProcedure As classProcedure)
     End With
     
     On Error Resume Next
-    Application.GoTo Reference:=ReferenceStr
+    Application.Goto Reference:=ReferenceStr
     On Error GoTo 0
 
 End Sub
@@ -1092,7 +1181,7 @@ Private Function MakeAligmentedArray(ByVal StrArray, Optional SikiriMoji$ = "："
     
     For J = 1 To M
         TmpMaxNagasa = MaxNagasaList(J) 'その列の最大文字列長さ
-        For I = 1 To N
+            For I = 1 To N
             'Rept…指定文字列を指定個数連続してつなげた文字列を出力する。
             '（最大文字数-文字数）の分" "（半角スペース）を後ろにくっつける。
             NagasaOnajiList(I, J) = StrArray(I, J) & WorksheetFunction.Rept(" ", TmpMaxNagasa - NagasaList(I, J))
@@ -1123,5 +1212,30 @@ Private Function MakeAligmentedArray(ByVal StrArray, Optional SikiriMoji$ = "："
     
 End Function
 
+Private Sub UserForm_Resize()
+    Call ResizeForm(Me)
+    
+    With Me 'VBProjectのリストのサイズだけへんちくりんなる問題を強制解決
+        .ListVBProject.Height = .Label1.Top - .ListVBProject.Top
+        .ListVBProject.Width = .ListViewModule.Width
+    End With
+    
+    Call リストビューのヘッダー幅調整(Me.ListViewModule, PriListViewColumnWidthModuleList)
+    Call リストビューのヘッダー幅調整(Me.ListViewProcedure, PriListViewColumnWidthProcedureList)
+    Call リストビューのヘッダー幅調整(Me.ListViewUseProcedure, PriListViewColumnWidthUseProcedureList)
+    Call リストビューのヘッダー幅調整(Me.ListViewCode, PriListViewColumnWidthCodeList)
+    
+End Sub
 
 
+Private Sub リストビューのヘッダー幅調整(ListView As ListView, HeaderWidthList)
+    
+    Dim NowFormWidth&
+    NowFormWidth = Me.Width
+    
+    Dim I&, J&, K&, M&, N& '数え上げ用(Long型)
+    For I = 1 To UBound(HeaderWidthList, 1)
+        ListView.ColumnHeaders(I).Width = HeaderWidthList(I) * NowFormWidth / PriIniFormWidth
+    Next I
+    
+End Sub
