@@ -20,6 +20,7 @@ Excelの設定でExcel2019の場合「Excelのオプション」→「トラス�
 ![Excelの設定](https://user-images.githubusercontent.com/73621859/126287884-57db4a75-3f34-4b35-b23d-f705067a1869.jpg)
 
 設定方法の記事↓
+
 http://blog.livedoor.jp/aero_iki-jibundakemacro/archives/30630575.html
 
 ## Step2
@@ -51,7 +52,7 @@ TreeViewコントロールはExcelバージョン,Windows環境で動いたり�
 ![1 KAISO()](https://user-images.githubusercontent.com/73621859/126260383-018720ef-904d-48ed-a82c-41041c497c89.jpg)
 
 # 階層化表示フォームの画面および使い方説明
-![階層フォーム説明1](https://user-images.githubusercontent.com/73621859/128684001-6fba88ef-dc7f-4ec6-bf7d-f79c0692b225.jpg)
+![階層フォーム説明1](説明用/階層化01.jpg)
 
 ![階層フォーム説明2](https://user-images.githubusercontent.com/73621859/128684028-3413017b-b556-4c15-b247-87dbd582f6e8.jpg)
 
