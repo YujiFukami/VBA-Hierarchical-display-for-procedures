@@ -29,14 +29,23 @@ http://blog.livedoor.jp/aero_iki-jibundakemacro/archives/30630575.html
 
 ## Step2
 下記ダウンロードし、VBEにインポートする。
+
 ・frmKaiso.fm
+
 ・ModExtProcedure.bas
+
 ・ModGetProcedureAllCode.bas
+
 ・ModRefLibraryForKaiso.bas
+
 ・ModUserFormResize.bas
+
 ・ClassVBProject
+
 ・ClassModule
+
 ・ClassProcedure
+
 
 また、下記ライブラリを追加で参照する、もしくは「ModRefLibraryForKaiso.bas」モジュール内の「RefLibraryForKaiso」プロシージャを実行すること。
 
