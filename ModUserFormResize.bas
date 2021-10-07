@@ -10,7 +10,7 @@ Private Const WS_THICKFRAME = &H40000
 '// 64bit版
 #If VBA7 And Win64 Then
     Private Declare PtrSafe Function GetWindowLong Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As Long) As Long
-    Private Declare PtrSafe Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
+    Private Declare PtrSafe Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As Long, ByVal dwNewLong As LongPtr) As Long
     Private Declare PtrSafe Function GetActiveWindow Lib "user32" () As LongPtr
     Private Declare PtrSafe Function DrawMenuBar Lib "user32" (ByVal hwnd As LongPtr) As Long
 '// 32bit版
@@ -35,9 +35,14 @@ Public Sub SetFormEnableResize()
 
 '20211007
 
-    Dim hwnd As Long         'ウインドウハンドル
-    Dim style As Long        'ウインドウスタイル
- 
+#If VBA7 And Win64 Then
+    Dim hwnd As LongPtr  'ウインドウハンドル
+    Dim style As LongPtr 'ウインドウスタイル
+#Else
+    Dim hwnd As Long  'ウインドウハンドル
+    Dim style As Long 'ウインドウスタイル
+#End If
+
     'ウインドウハンドル取得
     hwnd = GetActiveWindow()
     
